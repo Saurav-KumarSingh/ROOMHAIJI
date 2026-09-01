@@ -1,17 +1,43 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 
 export function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.eyebrow}>Profile</Text>
-        <Text style={styles.title}>Production-ready app foundation</Text>
-        <Text style={styles.subtitle}>
-          Keep feature folders focused, route screens intentionally, and remove template code as you
-          build real product functionality.
-        </Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Profile Card */}
+        <View style={styles.card}>
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.avatar}
+              contentFit="contain"
+            />
+          </View>
+          <Text style={styles.name}>Roomhaiji User</Text>
+          <Text style={styles.badge}>Development Profile</Text>
+        </View>
+
+        {/* Feature Management */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>App Architecture</Text>
+          <View style={styles.item}>
+            <Text style={styles.itemLabel}>Expo SDK</Text>
+            <Text style={styles.itemValue}>57.0.18</Text>
+          </View>
+          <View style={styles.item}>
+            <Text style={styles.itemLabel}>Navigation</Text>
+            <Text style={styles.itemValue}>Expo Router v57</Text>
+          </View>
+          <View style={styles.item}>
+            <Text style={styles.itemLabel}>UI Styling</Text>
+            <Text style={styles.itemValue}>Pure React Native + Expo Image</Text>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -19,31 +45,81 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.bgBase,
   },
-  container: {
-    flex: 1,
+  content: {
+    padding: SPACING.xl,
+    gap: SPACING.xl,
+  },
+  card: {
+    backgroundColor: COLORS.bgSurface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xxl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 10,
+  },
+  avatarWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    gap: 12,
+    padding: SPACING.sm,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
   },
-  eyebrow: {
-    color: '#0f766e',
+  avatar: {
+    width: '100%',
+    height: '100%',
+  },
+  name: {
+    color: COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: SPACING.xs,
+  },
+  badge: {
+    color: COLORS.accent,
+    backgroundColor: COLORS.accentBg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: SPACING.md,
     fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+    fontWeight: '600',
+    overflow: 'hidden',
   },
-  title: {
-    color: '#0f172a',
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 34,
+  section: {
+    backgroundColor: COLORS.bgSurface,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 14,
   },
-  subtitle: {
-    color: '#475569',
+  sectionTitle: {
+    color: COLORS.textPrimary,
     fontSize: 16,
-    lineHeight: 24,
+    fontWeight: '700',
+    marginBottom: SPACING.xs,
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  itemLabel: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  itemValue: {
+    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

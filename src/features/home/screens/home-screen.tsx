@@ -1,32 +1,53 @@
+import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const overview = [
-  { label: 'App shell', value: 'Expo Router' },
-  { label: 'Architecture', value: 'Feature based' },
-  { label: 'Status', value: 'Production ready' },
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+
+const highlights = [
+  { label: 'Platform', value: 'Expo SDK 57' },
+  { label: 'Routing', value: 'Expo Router' },
+  { label: 'Structure', value: 'Feature Based' },
 ];
 
 export function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Brand Hero */}
         <View style={styles.hero}>
-          <Text style={styles.kicker}>Roomhaiji</Text>
-          <Text style={styles.title}>A clean foundation for your app</Text>
-          <Text style={styles.subtitle}>
-            This project has been trimmed down to a simple, maintainable structure with clear
-            feature boundaries and only the core app routing needed for production.
-          </Text>
+          <View style={styles.logoWrapper}>
+            <Image
+              source={require('@/assets/images/Logo_3D.png')}
+              style={styles.logo}
+              contentFit="contain"
+            />
+          </View>
+          <View style={styles.heroTextContainer}>
+            <Text style={styles.kicker}>Welcome to</Text>
+            <Text style={styles.title}>ROOMHAIJI</Text>
+            <Text style={styles.subtitle}>
+              Your modern, reliable platform for finding and managing rooms effortlessly.
+            </Text>
+          </View>
         </View>
 
+        {/* Quick Highlights */}
         <View style={styles.grid}>
-          {overview.map((item) => (
+          {highlights.map((item) => (
             <View key={item.label} style={styles.card}>
               <Text style={styles.cardLabel}>{item.label}</Text>
               <Text style={styles.cardValue}>{item.value}</Text>
             </View>
           ))}
+        </View>
+
+        {/* Development Ready Banner */}
+        <View style={styles.infoBanner}>
+          <View style={styles.statusDot} />
+          <Text style={styles.infoText}>
+            Project is streamlined and optimized for production development.
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -36,60 +57,110 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: COLORS.bgBase,
   },
   content: {
-    padding: 24,
-    gap: 20,
+    padding: SPACING.xl,
+    gap: 18,
   },
   hero: {
-    backgroundColor: '#0f172a',
-    borderRadius: 24,
-    padding: 24,
-    gap: 12,
+    backgroundColor: COLORS.bgSurface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xxl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: SPACING.lg,
+  },
+  logoWrapper: {
+    width: 110,
+    height: 110,
+    borderRadius: RADIUS.xl,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+  },
+  heroTextContainer: {
+    alignItems: 'center',
+    gap: SPACING.xs + 2,
   },
   kicker: {
-    color: '#7dd3fc',
-    fontSize: 12,
+    color: COLORS.accent,
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 1.6,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   title: {
-    color: '#f8fafc',
-    fontSize: 32,
-    fontWeight: '700',
-    lineHeight: 38,
+    color: COLORS.textPrimary,
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   subtitle: {
-    color: '#cbd5e1',
-    fontSize: 16,
-    lineHeight: 24,
+    color: COLORS.textSecondary,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: SPACING.md,
   },
   card: {
-    flexBasis: '31%',
-    minWidth: 160,
-    backgroundColor: '#ffffff',
-    borderRadius: 18,
-    padding: 18,
+    flex: 1,
+    minWidth: 100,
+    backgroundColor: COLORS.bgSurface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.lg,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: COLORS.border,
+    alignItems: 'center',
   },
   cardLabel: {
-    color: '#64748b',
-    fontSize: 12,
+    color: COLORS.textTertiary,
+    fontSize: 11,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: SPACING.xs + 2,
     textTransform: 'uppercase',
   },
   cardValue: {
-    color: '#0f172a',
-    fontSize: 18,
+    color: COLORS.textPrimary,
+    fontSize: 14,
     fontWeight: '700',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.bgBanner,
+    borderRadius: RADIUS.md,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderAccent,
+    gap: SPACING.md,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.statusGreen,
+  },
+  infoText: {
+    flex: 1,
+    color: COLORS.textBanner,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
   },
 });

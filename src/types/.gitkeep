@@ -1,0 +1,2 @@
+# Global TypeScript type declarations shared across all features.
+# e.g. User, ApiResponse<T>, Paginated<T>, NavigationParams, etc.
