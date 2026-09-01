@@ -1,10 +1,11 @@
-import { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
+import { ComponentProps, memo } from 'react';
 import { ColorValue, Platform } from 'react-native';
 
-import { COLORS } from '@/constants/theme';
+import { useI18n } from '@/hooks/use-i18n';
+import { useTheme } from '@/hooks/use-theme';
 
 /**
  * Renders a tab icon with platform parity:
@@ -29,22 +30,25 @@ function TabIcon({
   return <Ionicons name={ionicon} color={color} size={size} />;
 }
 
-export default function TabsLayout() {
+export default memo(function TabsLayout() {
+  const { theme } = useTheme();
+  const { t } = useI18n();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.accent,
-        tabBarInactiveTintColor: COLORS.textTertiary,
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.ink3,
         tabBarStyle: {
-          backgroundColor: COLORS.bgBase,
-          borderTopColor: COLORS.border,
+          backgroundColor: theme.surface,
+          borderTopColor: theme.line,
         },
       }}>
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: 'Home',
+          title: t('nav.home'),
           tabBarIcon: ({ color }) => (
             <TabIcon sfSymbol="house.fill" ionicon="home" color={color} size={22} />
           ),
@@ -53,7 +57,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('profile'),
           tabBarIcon: ({ color }) => (
             <TabIcon
               sfSymbol="person.crop.circle.fill"
@@ -66,4 +70,4 @@ export default function TabsLayout() {
       />
     </Tabs>
   );
-}
+});

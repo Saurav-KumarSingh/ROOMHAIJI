@@ -4,23 +4,35 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// Prevent the splash screen from auto-hiding before fonts/assets are loaded.
+import { I18nProvider } from '@/hooks/use-i18n';
+import { useTheme } from '@/hooks/use-theme';
+
+// Prevent the splash screen from auto-hiding before assets are loaded.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootNavigator() {
+  const { isDark } = useTheme();
+
   useEffect(() => {
-    // Hide the splash screen once the root layout has mounted and
-    // all synchronous setup (fonts, theme, etc.) is complete.
     SplashScreen.hideAsync();
   }, []);
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
     </SafeAreaProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <I18nProvider defaultLanguage="en">
+      <RootNavigator />
+    </I18nProvider>
   );
 }

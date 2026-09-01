@@ -1,14 +1,27 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
 export default function NotFoundScreen() {
+  const { theme } = useTheme();
+
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
-      <View style={styles.container}>
-        <Text style={styles.title}>This screen does not exist.</Text>
-        <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home</Text>
+      <View style={[styles.container, { backgroundColor: theme.surface2 }]}>
+        <Text style={[styles.title, { color: theme.ink }]}>This screen does not exist.</Text>
+        <Link
+          href="/"
+          style={[
+            styles.link,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.line,
+            },
+          ]}>
+          <Text style={[styles.linkText, { color: theme.primary }]}>Go to home</Text>
         </Link>
       </View>
     </>
@@ -20,27 +33,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#0b0f19',
-    gap: 12,
+    padding: SPACING.xl,
+    gap: SPACING.md,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#f8fafc',
   },
   link: {
-    marginTop: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#111827',
-    borderRadius: 12,
+    marginTop: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
-    borderColor: '#1f2937',
   },
   linkText: {
     fontSize: 14,
-    color: '#f59e0b',
     fontWeight: '600',
   },
 });

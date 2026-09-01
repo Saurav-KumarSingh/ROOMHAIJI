@@ -4,36 +4,38 @@
     "slug": "ROOMHAIJI",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo_icon.png",
     "scheme": "roomhaiji",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "icon": "./assets/logo_icon.png",
       "bundleIdentifier": "com.saurav.roomhaiji",
       "supportsTablet": true
     },
     "android": {
       "package": "com.saurav.roomhaiji",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/images/icon.png"
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundImage": "./assets/images/logo.png",
+        "monochromeImage": "./assets/images/logo.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/logo.png"
+      "favicon": "./assets/images/logo_icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#ffffff",
-          "image": "./assets/images/Logo_3D.png",
-          "imageWidth": 160
+          "backgroundColor": "#208AEF",
+          "image": "./assets/images/logo.png",
+          "imageWidth": 76
         }
-      ],
-      "expo-font"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
