@@ -7,9 +7,21 @@ export const I18N_TRANSLATIONS = {
   en: {
     'app.name': 'RoomHaiji',
     'app.tag': 'Rent management, made simple.',
+    'welcome.greeting': 'Welcome to',
+    'welcome.heroDesc': 'Track rent, collect payments and keep records — all from your phone.',
     'role.landlord': "I'm a Landlord",
+    'role.landlord.sub': 'Manage properties, tenants & rent',
     'role.tenant': "I'm a Tenant",
+    'role.tenant.sub': 'Pay rent & download receipts',
     'auth.phone': 'Mobile Number',
+    'auth.phoneTitle': 'Let\'s get started',
+    'auth.phoneSub': "We'll send a one-time password to verify it's you.",
+    'auth.phoneLabel': 'Phone number',
+    'auth.phonePrivacy': 'Your number is private and used only for login & rent reminders.',
+    'auth.termsNotice': 'By continuing you agree to our',
+    'auth.terms': 'Terms',
+    'auth.and': '&',
+    'auth.privacy': 'Privacy',
     'auth.otp': 'OTP Verification',
     'auth.sendOtp': 'Send OTP',
     'auth.verify': 'Verify & Continue',
@@ -80,9 +92,21 @@ export const I18N_TRANSLATIONS = {
   hi: {
     'app.name': 'मकानसाथी',
     'app.tag': 'किराया प्रबंधन, आसान बनाया।',
+    'welcome.greeting': 'स्वागत है',
+    'welcome.heroDesc': 'किराया ट्रैक करें, भुगतान लें और रिकॉर्ड रखें — सब आपके फोन से।',
     'role.landlord': 'मैं मकान मालिक हूँ',
+    'role.landlord.sub': 'संपत्ति, किरायेदार और किराया प्रबंधित करें',
     'role.tenant': 'मैं किरायेदार हूँ',
+    'role.tenant.sub': 'किराया दें और रसीद डाउनलोड करें',
     'auth.phone': 'मोबाइल नंबर',
+    'auth.phoneTitle': 'मोबाइल नंबर',
+    'auth.phoneSub': 'हम आपकी पहचान सत्यापित करने के लिए एक वन-टाइम पासवर्ड भेजेंगे।',
+    'auth.phoneLabel': 'फोन नंबर',
+    'auth.phonePrivacy': 'आपका नंबर निजी है और केवल लॉगिन और किराया रिमाइंडर के लिए उपयोग किया जाता है।',
+    'auth.termsNotice': 'आगे बढ़कर आप हमारे',
+    'auth.terms': 'नियमों',
+    'auth.and': '&',
+    'auth.privacy': 'गोपनीयता नीति से सहमत हैं',
     'auth.otp': 'OTP सत्यापन',
     'auth.sendOtp': 'OTP भेजें',
     'auth.verify': 'सत्यापित करें और आगे बढ़ें',
@@ -154,6 +178,18 @@ export const I18N_TRANSLATIONS = {
 
 export type SupportedLanguage = keyof typeof I18N_TRANSLATIONS;
 export type TranslationKey = keyof (typeof I18N_TRANSLATIONS)['en'];
+
+export const SUPPORTED_LANGUAGES = Object.keys(I18N_TRANSLATIONS) as SupportedLanguage[];
+
+export interface LanguageOption {
+  code: SupportedLanguage;
+  labelKey: TranslationKey;
+}
+
+export const LANGUAGE_OPTIONS: LanguageOption[] = [
+  { code: 'en', labelKey: 'lang.en' },
+  { code: 'hi', labelKey: 'lang.hi' },
+];
 
 // Also export as MS_I18N for exact matching with naming convention
 export const MS_I18N = I18N_TRANSLATIONS;

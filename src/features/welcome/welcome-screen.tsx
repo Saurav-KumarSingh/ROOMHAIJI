@@ -5,21 +5,23 @@ import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { SupportedLanguage, TranslationKey } from '@/constants/i18n';
+import {
+  LANGUAGE_OPTIONS,
+  type SupportedLanguage,
+  type TranslationKey,
+} from '@/constants/i18n';
 import { RADIUS, SPACING, type ThemeTokens } from '@/constants/theme';
 import { useI18n } from '@/hooks/use-i18n';
 import { useTheme } from '@/hooks/use-theme';
 
 const LOGO_SOURCE: ImageSource = require('@/assets/images/logo.png');
 
-const LANG_OPTIONS: SupportedLanguage[] = ['en', 'hi'];
 type Role = 'landlord' | 'tenant';
 
 interface RoleOption {
   role: Role;
   titleKey: TranslationKey;
-  subtitleEn: string;
-  subtitleHi: string;
+  subtitleKey: TranslationKey;
   getColors: (theme: ThemeTokens) => { icon: string; bg: string };
 }
 
@@ -27,32 +29,29 @@ const ROLE_OPTIONS: RoleOption[] = [
   {
     role: 'landlord',
     titleKey: 'role.landlord',
-    subtitleEn: 'Manage properties, tenants & rent',
-    subtitleHi: 'संपत्ति, किरायेदार और किराया प्रबंधित करें',
+    subtitleKey: 'role.landlord.sub',
     getColors: (theme) => ({ icon: theme.primary, bg: theme.primary050 }),
   },
   {
     role: 'tenant',
     titleKey: 'role.tenant',
-    subtitleEn: 'Pay rent & download receipts',
-    subtitleHi: 'किराया दें और रसीद डाउनलोड करें',
+    subtitleKey: 'role.tenant.sub',
     getColors: (theme) => ({ icon: theme.accent, bg: theme.accent050 }),
   },
 ];
 
 interface RoleCardProps {
   option: RoleOption;
-  language: SupportedLanguage;
   t: (key: TranslationKey) => string;
   theme: ThemeTokens;
   onPress: (role: Role) => void;
 }
 
-function RoleCard({ option, language, t, theme, onPress }: RoleCardProps) {
+function RoleCard({ option, t, theme, onPress }: RoleCardProps) {
   const handlePress = useCallback(() => onPress(option.role), [onPress, option.role]);
   const colors = option.getColors(theme);
   const title = t(option.titleKey);
-  const subtitle = language === 'hi' ? option.subtitleHi : option.subtitleEn;
+  const subtitle = t(option.subtitleKey);
 
   return (
     <Pressable
@@ -79,15 +78,16 @@ function RoleCard({ option, language, t, theme, onPress }: RoleCardProps) {
 
 interface LangButtonProps {
   value: SupportedLanguage;
+  labelKey: TranslationKey;
   active: boolean;
   theme: ThemeTokens;
   t: (key: TranslationKey) => string;
   onPress: (lang: SupportedLanguage) => void;
 }
 
-function LangButton({ value, active, theme, t, onPress }: LangButtonProps) {
+function LangButton({ value, labelKey, active, theme, t, onPress }: LangButtonProps) {
   const handlePress = useCallback(() => onPress(value), [onPress, value]);
-  const label = value === 'en' ? t('lang.en') : t('lang.hi');
+  const label = t(labelKey);
 
   return (
     <Pressable
@@ -116,8 +116,11 @@ export function WelcomeScreen() {
   const { language, setLanguage, t } = useI18n();
   const { theme } = useTheme();
 
-  const handleRoleSelect = useCallback((_role: Role) => {
-    router.replace('/(tabs)/home' as any);
+  const handleRoleSelect = useCallback((role: Role) => {
+    router.push({
+      pathname: '/auth/phone',
+      params: { role },
+    } as any);
   }, []);
 
   const handleLangChange = useCallback(
@@ -139,13 +142,11 @@ export function WelcomeScreen() {
         {/* Hero heading */}
         <View style={styles.hero}>
           <Text style={[styles.heading, { color: theme.ink }]}>
-            {language === 'hi' ? 'स्वागत है ' : 'Welcome to '}
+            {t('welcome.greeting')}{' '}
             <Text style={{ color: theme.primary }}>{t('app.name')}</Text>
           </Text>
           <Text style={[styles.subtitle, { color: theme.ink3 }]}>
-            {language === 'hi'
-              ? `${t('app.tag')} किराया ट्रैक करें, भुगतान लें और रिकॉर्ड रखें — सब आपके फोन से।`
-              : `${t('app.tag')} Track rent, collect payments and keep records — all from your phone.`}
+            {t('app.tag')} {t('welcome.heroDesc')}
           </Text>
         </View>
 
@@ -158,7 +159,6 @@ export function WelcomeScreen() {
             <RoleCard
               key={option.role}
               option={option}
-              language={language}
               t={t}
               theme={theme}
               onPress={handleRoleSelect}
@@ -168,11 +168,12 @@ export function WelcomeScreen() {
 
         {/* Language toggle */}
         <View style={styles.langRow}>
-          {LANG_OPTIONS.map((l) => (
+          {LANGUAGE_OPTIONS.map((opt) => (
             <LangButton
-              key={l}
-              value={l}
-              active={language === l}
+              key={opt.code}
+              value={opt.code}
+              labelKey={opt.labelKey}
+              active={language === opt.code}
               theme={theme}
               t={t}
               onPress={handleLangChange}
@@ -187,35 +188,36 @@ export function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    paddingVertical:SPACING.xxl
   },
   container: {
     flex: 1,
     paddingHorizontal: SPACING.xxl,
-    paddingTop: SPACING.xxl + 8,
-    paddingBottom: SPACING.lg,
+    paddingVertical:SPACING.xxl
   },
   logo: {
-    width: 56,
-    height: 56,
+    width: 100,
+    height: 100,
+    marginVertical:SPACING.xxl
   },
   hero: {
-    marginTop: 28,
+    marginTop: SPACING.xxl+SPACING.xxl,
     gap: SPACING.sm + 2,
   },
   heading: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     lineHeight: 36,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 22,
     lineHeight: 22,
   },
   spacer: {
     flex: 1,
   },
   cards: {
-    gap: SPACING.md,
+    gap: SPACING.lg,
     marginBottom: SPACING.xxl,
   },
   card: {
