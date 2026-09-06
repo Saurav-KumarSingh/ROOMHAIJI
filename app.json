@@ -8,7 +8,7 @@
     "scheme": "roomhaiji",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/logo_icon.png",
+      "icon": "./assets/images/logo_icon.png",
       "bundleIdentifier": "com.saurav.roomhaiji",
       "supportsTablet": true
     },

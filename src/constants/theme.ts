@@ -288,3 +288,97 @@ export const RADIUS = {
   xl: 24,
   full: 9999,
 } as const;
+
+/**
+ * Global Font Size scale.
+ */
+export const FONT_SIZE = {
+  xs: 11,
+  caption: 12.5,
+  sm: 13,
+  base: 14,
+  md: 15,
+  lg: 16,
+  xl: 18,
+  title: 20,
+  h3: 22,
+  h2: 26,
+  h1: 28,
+  hero: 32,
+} as const;
+
+/**
+ * Global Font Weight scale.
+ */
+export const FONT_WEIGHT = {
+  regular: '400',
+  medium: '500',
+  semibold: '600',
+  bold: '700',
+  heavy: '800',
+} as const;
+
+/**
+ * Global Line Height scale.
+ */
+export const LINE_HEIGHT = {
+  tight: 18,
+  normal: 22,
+  relaxed: 26,
+  heading: 32,
+  hero: 36,
+} as const;
+
+/**
+ * Global Typography Presets.
+ */
+export const TYPOGRAPHY = {
+  hero: {
+    fontSize: FONT_SIZE.hero,
+    fontWeight: FONT_WEIGHT.heavy,
+    lineHeight: LINE_HEIGHT.hero,
+  },
+  h1: {
+    fontSize: FONT_SIZE.h1,
+    fontWeight: FONT_WEIGHT.heavy,
+    lineHeight: LINE_HEIGHT.heading,
+  },
+  h2: {
+    fontSize: FONT_SIZE.h2,
+    fontWeight: FONT_WEIGHT.heavy,
+    letterSpacing: -0.3,
+  },
+  h3: {
+    fontSize: FONT_SIZE.h3,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  title: {
+    fontSize: FONT_SIZE.title,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  subtitle: {
+    fontSize: FONT_SIZE.md,
+    lineHeight: LINE_HEIGHT.normal,
+  },
+  label: {
+    fontSize: FONT_SIZE.base,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  body: {
+    fontSize: FONT_SIZE.base,
+    fontWeight: FONT_WEIGHT.medium,
+  },
+  input: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: FONT_WEIGHT.medium,
+    letterSpacing: 0.5,
+  },
+  button: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  caption: {
+    fontSize: FONT_SIZE.caption,
+    lineHeight: LINE_HEIGHT.tight,
+  },
+} as const;
