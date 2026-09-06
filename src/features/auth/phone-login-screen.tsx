@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingHorizontal: SPACING.lg,
     ...TYPOGRAPHY.input,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as any) : {}),
   },
   spacer: {
     flex: 1,

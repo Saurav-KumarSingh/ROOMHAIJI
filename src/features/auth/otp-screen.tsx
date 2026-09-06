@@ -2,16 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TextInputKeyPressEventData,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,10 +33,11 @@ export function OtpScreen() {
   const { t } = useI18n();
   const params = useLocalSearchParams<{ role?: string; phone?: string }>();
 
-  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(0);
+  const [otpCode, setOtpCode] = useState('');
+  const [isFocused, setIsFocused] = useState(true);
   const [timer, setTimer] = useState<number>(RESEND_COOLDOWN_SECONDS);
-  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const hiddenInputRef = useRef<TextInput | null>(null);
 
   // Format phone number for display
   const rawPhone = params.phone || '9820123456';
@@ -55,6 +55,14 @@ export function OtpScreen() {
     return () => clearInterval(interval);
   }, [timer]);
 
+  // Auto-focus hidden input on mount to instantly receive typing without clicking
+  useEffect(() => {
+    const focusTimer = setTimeout(() => {
+      hiddenInputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(focusTimer);
+  }, []);
+
   const formattedTimer = `${Math.floor(timer / 60)}:${timer % 60 < 10 ? '0' : ''}${timer % 60}`;
 
   const handleBack = useCallback(() => {
@@ -65,63 +73,38 @@ export function OtpScreen() {
     }
   }, []);
 
-  const handleChangeText = useCallback(
-    (text: string, index: number) => {
-      const cleaned = text.replace(/[^0-9]/g, '');
-      if (cleaned.length > 1) {
-        const newOtp = Array(OTP_LENGTH).fill('');
-        for (let i = 0; i < Math.min(cleaned.length, OTP_LENGTH); i++) {
-          newOtp[i] = cleaned[i];
-        }
-        setOtp(newOtp);
-        const lastIndex = Math.min(cleaned.length - 1, OTP_LENGTH - 1);
-        inputRefs.current[lastIndex]?.focus();
-        return;
-      }
+  const handleChangeText = useCallback((text: string) => {
+    const cleaned = text.replace(/[^0-9]/g, '').slice(0, OTP_LENGTH);
+    setOtpCode(cleaned);
+  }, []);
 
-      const newOtp = [...otp];
-      newOtp[index] = cleaned;
-      setOtp(newOtp);
-
-      if (cleaned !== '' && index < OTP_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    },
-    [otp],
-  );
-
-  const handleKeyPress = useCallback(
-    (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
-      if (e.nativeEvent.key === 'Backspace') {
-        if (otp[index] === '' && index > 0) {
-          const newOtp = [...otp];
-          newOtp[index - 1] = '';
-          setOtp(newOtp);
-          inputRefs.current[index - 1]?.focus();
-        }
-      }
-    },
-    [otp],
-  );
+  const handleContainerPress = useCallback(() => {
+    if (!isVerifying) {
+      hiddenInputRef.current?.focus();
+    }
+  }, [isVerifying]);
 
   const handleResendOtp = useCallback(() => {
-    if (timer > 0) return;
-    setOtp(Array(OTP_LENGTH).fill(''));
+    if (timer > 0 || isVerifying) return;
+    setOtpCode('');
     setTimer(RESEND_COOLDOWN_SECONDS);
-    inputRefs.current[0]?.focus();
-  }, [timer]);
+    hiddenInputRef.current?.focus();
+  }, [timer, isVerifying]);
 
-  const otpCode = otp.join('');
   const isValidOtp = otpCode.length === OTP_LENGTH;
 
   const handleVerify = useCallback(() => {
-    if (!isValidOtp) return;
+    if (!isValidOtp || isVerifying) return;
     Keyboard.dismiss();
-    router.push({
-      pathname: '/(tabs)/home',
-      params: { role: params.role || 'tenant', phone: rawPhone },
-    } as any);
-  }, [isValidOtp, params.role, rawPhone]);
+    setIsVerifying(true);
+
+    setTimeout(() => {
+      router.replace({
+        pathname: '/(tabs)/home',
+        params: { role: params.role || 'tenant', phone: rawPhone },
+      } as any);
+    }, 1200);
+  }, [isValidOtp, isVerifying, params.role, rawPhone]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.surface2 }]}>
@@ -136,6 +119,7 @@ export function OtpScreen() {
           {/* Back Button */}
           <Pressable
             onPress={handleBack}
+            disabled={isVerifying}
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={({ pressed }) => [
@@ -163,41 +147,54 @@ export function OtpScreen() {
             </Text>
           </View>
 
-          {/* Input Section */}
+          {/* Input Section - Container captures taps and delegates to full overlay TextInput */}
           <View style={styles.formGroup}>
-            {/* 6-Digit OTP Inputs */}
-            <View style={styles.otpRow}>
-              {Array.from({ length: OTP_LENGTH }).map((_, index) => {
-                const isFocused = focusedIndex === index;
-                return (
-                  <View
-                    key={index}
-                    style={[
-                      styles.otpBox,
-                      {
-                        backgroundColor: theme.surface,
-                        borderColor: isFocused ? theme.primary : theme.line,
-                      },
-                    ]}>
-                    <TextInput
-                      ref={(el) => {
-                        inputRefs.current[index] = el;
-                      }}
-                      style={[styles.otpInput, { color: theme.ink }]}
-                      value={otp[index]}
-                      onChangeText={(text) => handleChangeText(text, index)}
-                      onKeyPress={(e) => handleKeyPress(e, index)}
-                      onFocus={() => setFocusedIndex(index)}
-                      onBlur={() => setFocusedIndex(null)}
-                      keyboardType="number-pad"
-                      maxLength={index === 0 ? OTP_LENGTH : 1}
-                      selectTextOnFocus
-                      accessibilityLabel={`OTP digit ${index + 1}`}
-                    />
-                  </View>
-                );
-              })}
-            </View>
+            <Pressable onPress={handleContainerPress} style={styles.otpContainer}>
+              {/* 6 Visual OTP Boxes */}
+              <View style={styles.otpRow}>
+                {Array.from({ length: OTP_LENGTH }).map((_, index) => {
+                  const digit = otpCode[index] || '';
+                  const isCurrentBox =
+                    isFocused &&
+                    (index === otpCode.length ||
+                      (index === OTP_LENGTH - 1 && otpCode.length === OTP_LENGTH));
+
+                  return (
+                    <View
+                      key={index}
+                      style={[
+                        styles.otpBox,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: isCurrentBox ? theme.primary : theme.line,
+                        },
+                        isCurrentBox && styles.otpBoxActive,
+                      ]}>
+                      <Text style={[styles.otpBoxText, { color: theme.ink }]}>
+                        {digit}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Full Overlay Invisible TextInput for 100% Instant Focus & Auto-Fill */}
+              <TextInput
+                ref={hiddenInputRef}
+                style={styles.hiddenInput}
+                value={otpCode}
+                onChangeText={handleChangeText}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                keyboardType="number-pad"
+                maxLength={OTP_LENGTH}
+                autoFocus
+                textContentType="oneTimeCode"
+                autoComplete="one-time-code"
+                editable={!isVerifying}
+                accessibilityLabel="OTP Verification Code"
+              />
+            </Pressable>
           </View>
 
           {/* Spacer */}
@@ -207,7 +204,7 @@ export function OtpScreen() {
           <View style={styles.resendContainer}>
             <Pressable
               onPress={handleResendOtp}
-              disabled={timer > 0}
+              disabled={timer > 0 || isVerifying}
               hitSlop={8}
               accessibilityRole="button"
               style={({ pressed }) => [
@@ -232,16 +229,16 @@ export function OtpScreen() {
           {/* Verify & Continue Action Button */}
           <Pressable
             onPress={handleVerify}
-            disabled={!isValidOtp}
+            disabled={!isValidOtp || isVerifying}
             accessibilityRole="button"
-            accessibilityState={{ disabled: !isValidOtp }}
+            accessibilityState={{ disabled: !isValidOtp || isVerifying }}
             style={({ pressed }) => [
               styles.verifyButton,
               {
                 backgroundColor: theme.primary,
-                opacity: isValidOtp ? (pressed ? 0.85 : 1) : 0.5,
+                opacity: isValidOtp && !isVerifying ? (pressed ? 0.85 : 1) : 0.5,
               },
-              isValidOtp ? theme.sh2 : undefined,
+              isValidOtp && !isVerifying ? theme.sh2 : undefined,
             ]}>
             <Text style={[styles.verifyText, { color: theme.white }]}>
               {t('auth.verify')}
@@ -250,6 +247,18 @@ export function OtpScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Verification Overlay with Blur effect */}
+      {isVerifying && (
+        <View style={[StyleSheet.absoluteFill, styles.blurOverlay]}>
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={theme.white} />
+            <Text style={[styles.loadingText, { color: theme.white }]}>
+              Please wait...
+            </Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -295,6 +304,10 @@ const styles = StyleSheet.create({
   formGroup: {
     marginTop: SPACING.xl + SPACING.md,
   },
+  otpContainer: {
+    position: 'relative',
+    width: '100%',
+  },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -309,12 +322,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  otpInput: {
-    width: '100%',
-    height: '100%',
-    textAlign: 'center',
+  otpBoxActive: {
+    borderWidth: 2,
+  },
+  otpBoxText: {
     fontSize: 20,
     fontWeight: FONT_WEIGHT.bold,
+    textAlign: 'center',
+  },
+  hiddenInput: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.01,
+    color: 'transparent',
+    fontSize: 1,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as any) : {}),
   },
   spacer: {
     flex: 1,
@@ -344,5 +365,22 @@ const styles = StyleSheet.create({
   },
   verifyText: {
     ...TYPOGRAPHY.button,
+  },
+  blurOverlay: {
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(10px)' } : {}),
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.md,
+  },
+  loadingText: {
+    fontSize: FONT_SIZE.base,
+    fontWeight: FONT_WEIGHT.semibold,
+    letterSpacing: 0.3,
   },
 });
