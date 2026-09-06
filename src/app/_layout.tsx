@@ -23,6 +23,7 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="auth/phone" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/otp" options={{ headerShown: false }} />
         <Stack.Screen name="auth/terms" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="auth/privacy" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

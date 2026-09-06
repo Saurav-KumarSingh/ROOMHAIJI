@@ -54,7 +54,7 @@ export function PhoneLoginScreen() {
     if (!isValidPhone) return;
     Keyboard.dismiss();
     router.push({
-      pathname: '/(tabs)/home',
+      pathname: '/auth/otp',
       params: { role: params.role || 'tenant', phone: phoneNumber },
     } as any);
   }, [isValidPhone, phoneNumber, params.role]);
