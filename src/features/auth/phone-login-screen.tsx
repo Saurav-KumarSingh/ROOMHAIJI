@@ -60,11 +60,11 @@ export function PhoneLoginScreen() {
   }, [isValidPhone, phoneNumber, params.role]);
 
   const handleTermsPress = useCallback(() => {
-    router.push('/auth/terms');
+    router.push('/auth/terms' as any);
   }, []);
 
   const handlePrivacyPress = useCallback(() => {
-    router.push('/auth/privacy');
+    router.push('/auth/privacy' as any);
   }, []);
 
   return (
