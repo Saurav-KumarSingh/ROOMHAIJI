@@ -99,10 +99,17 @@ export function OtpScreen() {
     setIsVerifying(true);
 
     setTimeout(() => {
-      router.replace({
-        pathname: '/(tabs)/home',
-        params: { role: params.role || 'tenant', phone: rawPhone },
-      } as any);
+      if (params.role === 'landlord') {
+        router.replace({
+          pathname: '/auth/landlord-onboarding',
+          params: { role: 'landlord', phone: rawPhone },
+        } as any);
+      } else {
+        router.replace({
+          pathname: '/(tabs)/home',
+          params: { role: params.role || 'tenant', phone: rawPhone },
+        } as any);
+      }
     }, 1200);
   }, [isValidOtp, isVerifying, params.role, rawPhone]);
 
