@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LoadingBlurOverlay } from '@/components/loading-blur-overlay';
 import {
   FONT_SIZE,
   FONT_WEIGHT,
@@ -94,6 +95,7 @@ export function LandlordOnboardingScreen() {
     '12, MG Road, Andheri West, Mumbai - 400058',
   );
   const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Photos State
   const [photos, setPhotos] = useState<string[]>([]);
@@ -313,20 +315,23 @@ export function LandlordOnboardingScreen() {
       return;
     }
     Keyboard.dismiss();
-    router.push({
-      pathname: '/auth/add-rooms',
-      params: {
-        role: 'landlord',
-        phone: params.phone || '',
-        fullName,
-        email,
-        upiId,
-        city,
-        property: propertyName,
-        propertyType: selectedPropertyType,
-        units: String(unitCount),
-      },
-    } as any);
+    setIsSubmitting(true);
+    setTimeout(() => {
+      router.push({
+        pathname: '/auth/add-rooms',
+        params: {
+          role: 'landlord',
+          phone: params.phone || '',
+          fullName,
+          email,
+          upiId,
+          city,
+          property: propertyName,
+          propertyType: selectedPropertyType,
+          units: String(unitCount),
+        },
+      } as any);
+    }, 800);
   }, [params.phone, fullName, email, upiId, city, propertyName, selectedPropertyType, unitCount, validatePropertyName]);
 
   // Completion Handlers (for Add rooms later)
@@ -339,22 +344,25 @@ export function LandlordOnboardingScreen() {
         return;
       }
       Keyboard.dismiss();
-      router.replace({
-        pathname: '/(tabs)/home',
-        params: {
-          role: 'landlord',
-          phone: params.phone || '',
-          onboarded: 'true',
-          fullName,
-          email,
-          upiId,
-          city,
-          property: propertyName,
-          propertyType: selectedPropertyType,
-          units: String(unitCount),
-          addRoomsNow: String(addRoomsNow),
-        },
-      } as any);
+      setIsSubmitting(true);
+      setTimeout(() => {
+        router.replace({
+          pathname: '/(tabs)/home',
+          params: {
+            role: 'landlord',
+            phone: params.phone || '',
+            onboarded: 'true',
+            fullName,
+            email,
+            upiId,
+            city,
+            property: propertyName,
+            propertyType: selectedPropertyType,
+            units: String(unitCount),
+            addRoomsNow: String(addRoomsNow),
+          },
+        } as any);
+      }, 800);
     },
     [params.phone, fullName, email, upiId, city, propertyName, selectedPropertyType, unitCount, validatePropertyName],
   );
@@ -1170,6 +1178,8 @@ export function LandlordOnboardingScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <LoadingBlurOverlay visible={isSubmitting} message="Please wait..." />
     </SafeAreaView>
   );
 }

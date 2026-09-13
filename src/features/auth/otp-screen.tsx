@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LoadingBlurOverlay } from '@/components/loading-blur-overlay';
 import {
   FONT_SIZE,
   FONT_WEIGHT,
@@ -106,7 +107,7 @@ export function OtpScreen() {
         } as any);
       } else {
         router.replace({
-          pathname: '/(tabs)/home',
+          pathname: '/auth/tenant-onboarding',
           params: { role: params.role || 'tenant', phone: rawPhone },
         } as any);
       }
@@ -256,16 +257,7 @@ export function OtpScreen() {
       </KeyboardAvoidingView>
 
       {/* Verification Overlay with Blur effect */}
-      {isVerifying && (
-        <View style={[StyleSheet.absoluteFill, styles.blurOverlay]}>
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color={theme.white} />
-            <Text style={[styles.loadingText, { color: theme.white }]}>
-              Please wait...
-            </Text>
-          </View>
-        </View>
-      )}
+      <LoadingBlurOverlay visible={isVerifying} message="Please wait..." />
     </SafeAreaView>
   );
 }
