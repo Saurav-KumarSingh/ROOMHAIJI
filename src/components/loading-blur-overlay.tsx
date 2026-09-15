@@ -43,15 +43,7 @@ export const LoadingBlurOverlay = memo(function LoadingBlurOverlay({
 
   return (
     <View style={[StyleSheet.absoluteFill, styles.overlay, { backgroundColor: defaultBackdrop }]}>
-      <View
-        style={[
-          styles.cardBox,
-          {
-            backgroundColor: 'rgba(30, 41, 59, 0.88)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-          },
-          theme.sh3,
-        ]}>
+      <View>
         <ActivityIndicator size="large" color={theme.white} />
         <Text style={[styles.messageText, { color: theme.white }]}>
           {message}
@@ -69,9 +61,9 @@ const styles = StyleSheet.create({
     elevation: 10,
     ...(Platform.OS === 'web'
       ? ({
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        } as any)
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      } as any)
       : {}),
   },
   cardBox: {
