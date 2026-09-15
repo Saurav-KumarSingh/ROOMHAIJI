@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { memo, useState } from 'react';
 import {
   Modal,
@@ -18,37 +17,39 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export interface PaymentSuccessModalProps {
-  visible: boolean;
-  onClose: () => void;
-  amount: string;
+export interface ReceiptItem {
+  id: string;
   month: string;
-  landlordName: string;
+  amount: string;
+  paidDate: string;
+  landlordName?: string;
   tenantName?: string;
-  propertyName: string;
-  roomNo: string;
-  paymentMethod: string;
+  propertyName?: string;
+  roomNo?: string;
+  rentPeriod?: string;
+  paymentMethod?: string;
   transactionId?: string;
+  landlordUpiId?: string;
 }
 
-export const PaymentSuccessModal = memo(function PaymentSuccessModal({
-  visible,
-  onClose,
-  amount,
-  month,
-  landlordName,
-  tenantName = 'Amit Kumar',
-  propertyName,
-  roomNo,
-  paymentMethod,
-  transactionId = `TXN9F3K82Q`,
-}: PaymentSuccessModalProps) {
-  const { theme } = useTheme();
+export interface ReceiptDetailModalProps {
+  visible: boolean;
+  receipt: ReceiptItem | null;
+  onClose: () => void;
+}
 
+export const ReceiptDetailModal = memo(function ReceiptDetailModal({
+  visible,
+  receipt,
+  onClose,
+}: ReceiptDetailModalProps) {
+  const { theme } = useTheme();
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
 
-  const handleDownloadReceipt = () => {
+  if (!receipt) return null;
+
+  const handleDownload = () => {
     setIsDownloading(true);
     setTimeout(() => {
       setIsDownloading(false);
@@ -57,16 +58,14 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
     }, 1200);
   };
 
-  const handleViewInReceipts = () => {
-    onClose();
-    router.push('/(tabs)/receipts' as any);
-  };
-
-  const todayFormatted = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  const landlordName = receipt.landlordName || 'Rajesh Sharma';
+  const tenantName = receipt.tenantName || 'Amit Kumar';
+  const propertyName = receipt.propertyName || 'Sharma Building';
+  const roomNo = receipt.roomNo || '204';
+  const rentPeriod = receipt.rentPeriod || `01–31 ${receipt.month}`;
+  const paymentMethod = receipt.paymentMethod || 'UPI (GPS)';
+  const referenceNo = receipt.transactionId || 'TXN9F3K82Q';
+  const landlordUpi = receipt.landlordUpiId || 'rajesh.sharma@oksbi';
 
   return (
     <Modal
@@ -77,24 +76,28 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
     >
       <View style={[styles.backdrop, { backgroundColor: theme.ink + '8C' }]}>
         <View style={[styles.modalCard, { backgroundColor: theme.surface }, theme.sh3]}>
+          
           <ScrollView
             contentContainerStyle={styles.modalScroll}
             showsVerticalScrollIndicator={false}
           >
-            {/* Top Success Badge Banner */}
-            <View style={styles.topSuccessContainer}>
-              <View style={[styles.checkCircle, { backgroundColor: theme.okBg }]}>
-                <Ionicons name="checkmark-circle" size={44} color={theme.ok} />
-              </View>
-              <Text style={[styles.title, { color: theme.ink }]}>
-                Payment Successful!
-              </Text>
-              <Text style={[styles.subtitle, { color: theme.ink3 }]}>
-                Rent for {month} paid to {landlordName}
-              </Text>
+            {/* Header / Dismiss Row */}
+            <View style={styles.topDismissRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                hitSlop={8}
+                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.closeBtn,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons name="close" size={20} color={theme.ink3} />
+              </Pressable>
             </View>
 
-            {/* Official Rent Receipt Card UI */}
+            {/* Official Rent Receipt Card (UI Mockup Parity) */}
             <View
               style={[
                 styles.receiptCard,
@@ -116,7 +119,7 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                     RoomHaiji
                   </Text>
                   <Text style={[styles.brandSubtitle, { color: theme.ink3 }]}>
-                    Rent Receipt · {month}
+                    Rent Receipt · {receipt.month}
                   </Text>
                 </View>
               </View>
@@ -130,7 +133,7 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                   AMOUNT RECEIVED
                 </Text>
                 <Text style={[styles.amountHeroText, { color: theme.ink }]}>
-                  {amount}
+                  {receipt.amount}
                 </Text>
               </View>
 
@@ -164,11 +167,11 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                 <View style={styles.gridRow}>
                   <View style={styles.gridCol}>
                     <Text style={[styles.fieldLabel, { color: theme.ink3 }]}>RENT PERIOD</Text>
-                    <Text style={[styles.fieldValue, { color: theme.ink }]}>01–31 {month}</Text>
+                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{rentPeriod}</Text>
                   </View>
                   <View style={styles.gridCol}>
                     <Text style={[styles.fieldLabel, { color: theme.ink3 }]}>PAYMENT DATE</Text>
-                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{todayFormatted}</Text>
+                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{receipt.paidDate}</Text>
                   </View>
                 </View>
 
@@ -176,13 +179,11 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                 <View style={styles.gridRow}>
                   <View style={styles.gridCol}>
                     <Text style={[styles.fieldLabel, { color: theme.ink3 }]}>PAYMENT METHOD</Text>
-                    <Text style={[styles.fieldValue, { color: theme.ink }]}>
-                      {paymentMethod.toUpperCase()} (GPS)
-                    </Text>
+                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{paymentMethod}</Text>
                   </View>
                   <View style={styles.gridCol}>
                     <Text style={[styles.fieldLabel, { color: theme.ink3 }]}>REFERENCE NO.</Text>
-                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{transactionId}</Text>
+                    <Text style={[styles.fieldValue, { color: theme.ink }]}>{referenceNo}</Text>
                   </View>
                 </View>
               </View>
@@ -196,7 +197,7 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                 <View style={styles.footerLeftCol}>
                   <Text style={[styles.fieldLabel, { color: theme.ink3 }]}>LANDLORD</Text>
                   <Text style={[styles.fieldValue, { color: theme.ink }]}>{landlordName}</Text>
-                  <Text style={[styles.upiSubtitle, { color: theme.ink3 }]}>rajesh.sharma@oksbi</Text>
+                  <Text style={[styles.upiSubtitle, { color: theme.ink3 }]}>{landlordUpi}</Text>
 
                   {/* PAID Dashed Stamp */}
                   <View style={[styles.paidStamp, { borderColor: theme.primary }]}>
@@ -215,12 +216,12 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
             </View>
 
             {/* Side-by-side Download and Done Action Buttons */}
-            <View style={styles.sideBySideRow}>
+            <View style={styles.actionsRow}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Download Receipt"
                 disabled={isDownloading}
-                onPress={handleDownloadReceipt}
+                onPress={handleDownload}
                 style={({ pressed }) => [
                   styles.outlinedTileBtn,
                   {
@@ -256,20 +257,6 @@ export const PaymentSuccessModal = memo(function PaymentSuccessModal({
                 </Text>
               </Pressable>
             </View>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="View All Receipts"
-              onPress={handleViewInReceipts}
-              style={({ pressed }) => [
-                styles.viewAllBtn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.viewAllBtnText, { color: theme.primary }]}>
-                View All Receipts →
-              </Text>
-            </Pressable>
           </ScrollView>
         </View>
       </View>
@@ -287,35 +274,23 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
-    maxHeight: '94%',
+    maxHeight: '92%',
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
   },
   modalScroll: {
     paddingBottom: SPACING.xs,
   },
-
-  topSuccessContainer: {
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  checkCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+  topDismissRow: {
+    alignItems: 'flex-end',
     marginBottom: SPACING.xs,
   },
-  title: {
-    fontSize: FONT_SIZE.h3,
-    fontWeight: FONT_WEIGHT.bold,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.base,
-    textAlign: 'center',
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.full,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   /* Receipt Card Styling */
@@ -452,10 +427,9 @@ const styles = StyleSheet.create({
   },
 
   /* Actions Row */
-  sideBySideRow: {
+  actionsRow: {
     flexDirection: 'row',
     gap: SPACING.md,
-    marginBottom: SPACING.sm,
   },
   outlinedTileBtn: {
     flex: 1,
@@ -483,14 +457,6 @@ const styles = StyleSheet.create({
   },
   btnIcon: {
     marginRight: SPACING.xs,
-  },
-  viewAllBtn: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xs,
-  },
-  viewAllBtnText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: FONT_WEIGHT.bold,
   },
   pressed: {
     opacity: 0.8,

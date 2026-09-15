@@ -1,5 +1,6 @@
-import { HomeScreen } from '@/features/home/home-screen';
+import { ReceiptsScreen } from '@/features/receipts/receipts-screen';
 
 export default function ReceiptsRoute() {
-  return <HomeScreen />;
+  return <ReceiptsScreen />;
 }
+
