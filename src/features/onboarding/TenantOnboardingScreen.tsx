@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LoadingBlurOverlay } from '@/components/loading-blur-overlay';
+import { LoadingBlurOverlay } from '@/components/LoadingBlurOverlay';
 import {
   FONT_SIZE,
   FONT_WEIGHT,

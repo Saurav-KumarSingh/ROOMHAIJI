@@ -1,4 +1,4 @@
-import { PayRentScreen } from '@/features/pay/pay-rent-screen';
+import { PayRentScreen } from '@/features/pay/PayRentScreen';
 
 export default function PayRoute() {
   return <PayRentScreen />;

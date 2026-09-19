@@ -21,7 +21,7 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { CreateIssueFormData, CreateIssueFormScreen } from './create-issue-form-screen';
+import { CreateIssueFormData, CreateIssueFormScreen } from './CreateIssueFormScreen';
 
 export interface IssueItem {
   id: string;

@@ -1,4 +1,4 @@
-import { LandlordOnboardingScreen } from '@/features/onboarding/landlord-onboarding-screen';
+import { LandlordOnboardingScreen } from '@/features/onboarding/LandlordOnboardingScreen';
 
 export default function LandlordOnboardingRoute() {
   return <LandlordOnboardingScreen />;

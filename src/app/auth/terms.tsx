@@ -1,4 +1,4 @@
-import { TermsScreen } from '@/features/legal/terms-screen';
+import { TermsScreen } from '@/features/legal/TermsScreen';
 
 export default function AuthTermsRoute() {
   return <TermsScreen />;

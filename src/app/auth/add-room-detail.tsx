@@ -1,4 +1,4 @@
-import { AddRoomDetailScreen } from '@/features/onboarding/add-room-detail-screen';
+import { AddRoomDetailScreen } from '@/features/onboarding/AddRoomDetailScreen';
 
 export default function AddRoomDetailRoute() {
   return <AddRoomDetailScreen />;

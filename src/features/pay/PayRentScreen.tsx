@@ -20,7 +20,7 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { PaymentSuccessModal } from './payment-success-modal';
+import { PaymentSuccessModal } from './PaymentSuccessModal';
 
 export type PaymentMethod = 'upi' | 'netbank' | 'cash';
 

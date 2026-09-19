@@ -1,4 +1,4 @@
-import { TenantOnboardingScreen } from '@/features/onboarding/tenant-onboarding-screen';
+import { TenantOnboardingScreen } from '@/features/onboarding/TenantOnboardingScreen';
 
 export default function TenantOnboardingRoute() {
   return <TenantOnboardingScreen />;

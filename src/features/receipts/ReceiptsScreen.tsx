@@ -18,7 +18,7 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { ReceiptDetailModal, ReceiptItem } from './receipt-detail-modal';
+import { ReceiptDetailModal, ReceiptItem } from './ReceiptDetailModal';
 
 const INITIAL_RECEIPTS: ReceiptItem[] = [
   {

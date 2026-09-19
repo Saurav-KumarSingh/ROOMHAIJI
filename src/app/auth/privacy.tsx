@@ -1,4 +1,4 @@
-import { PrivacyScreen } from '@/features/legal/privacy-screen';
+import { PrivacyScreen } from '@/features/legal/PrivacyScreen';
 
 export default function AuthPrivacyRoute() {
   return <PrivacyScreen />;

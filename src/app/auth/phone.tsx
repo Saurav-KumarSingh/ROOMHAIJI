@@ -1,4 +1,4 @@
-import { PhoneLoginScreen } from '@/features/auth/phone-login-screen';
+import { PhoneLoginScreen } from '@/features/auth/PhoneLoginScreen';
 
 export default function PhoneLoginRoute() {
   return <PhoneLoginScreen />;

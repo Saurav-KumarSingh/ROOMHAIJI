@@ -1,4 +1,4 @@
-import { CreateIssueFormScreen } from '@/features/issues/create-issue-form-screen';
+import { CreateIssueFormScreen } from '@/features/issues/CreateIssueFormScreen';
 
 export default function ReportIssueRoute() {
   return <CreateIssueFormScreen />;

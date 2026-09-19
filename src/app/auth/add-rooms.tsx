@@ -1,4 +1,4 @@
-import { AddRoomsScreen } from '@/features/onboarding/add-rooms-screen';
+import { AddRoomsScreen } from '@/features/onboarding/AddRoomsScreen';
 
 export default function AddRoomsRoute() {
   return <AddRoomsScreen />;
