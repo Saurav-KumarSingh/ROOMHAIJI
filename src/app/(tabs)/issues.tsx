@@ -1,5 +1,5 @@
-import { HomeScreen } from '@/features/home/home-screen';
+import { TenantIssuesScreen } from '@/features/issues/tenant-issues-screen';
 
 export default function IssuesRoute() {
-  return <HomeScreen />;
+  return <TenantIssuesScreen />;
 }
