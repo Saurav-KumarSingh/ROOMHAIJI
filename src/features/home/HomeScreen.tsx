@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -21,53 +21,116 @@ import {
 import { useUser } from '@/context/user-context';
 import { useTheme } from '@/hooks/use-theme';
 
+// ── MEMOIZED ATTENTION ITEM ROW ──────────────────────────────────────────────
+interface AttentionItemProps {
+  name: string;
+  room: string;
+  statusText: string;
+  statusType: 'red' | 'amber';
+  amount: string;
+  theme: any;
+  onCollect: (name: string, amount: string) => void;
+}
+
+const AttentionItemRow = memo(function AttentionItemRow({
+  name,
+  room,
+  statusText,
+  statusType,
+  amount,
+  theme,
+  onCollect,
+}: AttentionItemProps) {
+  const handlePress = useCallback(() => {
+    onCollect(name, amount);
+  }, [name, amount, onCollect]);
+
+  const isRed = statusType === 'red';
+
+  return (
+    <View style={styles.attentionRow}>
+      <View style={styles.attentionDotWrapper}>
+        <Text style={isRed ? styles.statusDotRed : styles.statusDotAmber}>● </Text>
+      </View>
+      <View style={styles.attentionDetails}>
+        <Text style={[styles.tenantNameText, { color: theme.ink }]}>
+          {name} · <Text style={styles.roomText}>Room {room}</Text>
+        </Text>
+        <Text
+          style={[
+            styles.overdueSubText,
+            { color: isRed ? theme.danger : theme.ink3 },
+          ]}>
+          {statusText} · ₹{amount}
+        </Text>
+      </View>
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [
+          isRed ? styles.collectBtnLightRed : styles.collectBtnAmber,
+          pressed && styles.pressed,
+        ]}>
+        <Text style={isRed ? styles.collectBtnLightRedText : styles.collectBtnAmberText}>
+          Collect
+        </Text>
+      </Pressable>
+    </View>
+  );
+});
+
+// ── MAIN HOMESCREEN COMPONENT ────────────────────────────────────────────────
 export function HomeScreen() {
   const { theme, isDark, themeMode, setThemeMode, toggleTheme } = useTheme();
   const { user, toggleRole, initials } = useUser();
 
-  // Theme Modal State
   const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
 
   const isLandlord = user.role === 'landlord';
 
   const handlePrimaryAction = useCallback(() => {
-    if (isLandlord) {
-      router.push({
-        pathname: '/auth/add-room-detail',
-        params: { role: 'landlord' },
-      } as any);
-    } else {
-      router.push('/(tabs)/pay' as any);
-    }
+    router.push({
+      pathname: '/(tabs)/pay',
+      params: { role: isLandlord ? 'landlord' : 'tenant' },
+    } as any);
   }, [isLandlord]);
 
-  const handleQuickAction = useCallback(
-    (action: string) => {
-      if (action === 'profile') {
-        router.push({ pathname: '/(tabs)/profile', params: { role: user.role } } as any);
-      } else if (action === 'theme') {
-        setIsThemeModalVisible(true);
-      } else if (action === 'receipts' || action === 'properties') {
-        router.push({ pathname: '/(tabs)/receipts', params: { role: user.role } } as any);
-      } else if (action === 'issues' || action === 'tenants') {
-        router.push({ pathname: '/(tabs)/issues', params: { role: user.role } } as any);
-      }
-    },
-    [user.role]
+  const handleCollectItem = useCallback((tenantName: string, amount: string) => {
+    router.push({
+      pathname: '/(tabs)/pay',
+      params: { tenant: tenantName, amount },
+    } as any);
+  }, []);
+
+  const handleNavProfile = useCallback(() => {
+    router.push({ pathname: '/(tabs)/profile', params: { role: user.role } } as any);
+  }, [user.role]);
+
+  const handleNavQuickAction = useCallback((path: string) => {
+    router.push({ pathname: path, params: { role: user.role } } as any);
+  }, [user.role]);
+
+  // Mock attention items data
+  const attentionItems = useMemo(
+    () => [
+      { id: '1', name: 'Rahul Singh', room: '103', statusText: 'Overdue by 3 days', statusType: 'red' as const, amount: '12,000' },
+      { id: '2', name: 'Priya Sharma', room: '105', statusText: 'Due today', statusType: 'amber' as const, amount: '10,000' },
+      { id: '3', name: 'Neha Verma', room: '104', statusText: 'Due in 2 days', statusType: 'amber' as const, amount: '11,000' },
+    ],
+    []
   );
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.surface2 }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Top Header Section */}
+        {/* ── TOP HEADER SECTION ────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
           <View style={styles.greetingContainer}>
             <View style={styles.nameRow}>
               <Text style={[styles.greetingText, { color: theme.ink }]}>
-                Hi, {user.name}
+                Hi {user.name}
               </Text>
-              <Text style={styles.waveEmoji}>{isLandlord ? '👋' : '👏'}</Text>
+              <Text style={styles.waveEmoji}>👋</Text>
             </View>
 
             <View style={styles.subRow}>
@@ -94,13 +157,13 @@ export function HomeScreen() {
               </Pressable>
 
               <Text style={[styles.subtitleText, { color: theme.ink3 }]}>
-                · {user.property}
+                {user.property} · Aug 2026
               </Text>
             </View>
           </View>
 
           <View style={styles.headerRightActions}>
-            {/* Quick 1-Tap Theme Switcher */}
+            {/* Quick Theme Switcher */}
             <Pressable
               onPress={toggleTheme}
               hitSlop={8}
@@ -118,9 +181,23 @@ export function HomeScreen() {
               />
             </Pressable>
 
-            {/* User Avatar Circle -> Navigates to Profile Screen */}
+            {/* Notification Bell */}
             <Pressable
-              onPress={() => router.push({ pathname: '/(tabs)/profile', params: { role: user.role } } as any)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              style={({ pressed }) => [
+                styles.iconBtn,
+                { backgroundColor: theme.surface, borderColor: theme.line },
+                pressed && styles.pressed,
+              ]}>
+              <Ionicons name="notifications-outline" size={20} color={theme.ink} />
+              <View style={styles.notifDot} />
+            </Pressable>
+
+            {/* User Avatar Circle -> Navigates to Profile */}
+            <Pressable
+              onPress={handleNavProfile}
               accessibilityRole="button"
               accessibilityLabel="My Profile"
               style={({ pressed }) => [
@@ -131,178 +208,215 @@ export function HomeScreen() {
               <Text style={[styles.avatarText, { color: theme.primary }]}>
                 {initials}
               </Text>
+              <View style={styles.avatarDot} />
             </Pressable>
           </View>
         </View>
 
-        {/* Hero Rent Card */}
-        <View style={[styles.rentCard, { backgroundColor: theme.primary }, theme.sh2]}>
-          <View style={styles.rentCardHeader}>
-            <Text style={styles.rentDueLabel}>
-              {isLandlord ? 'RENT COLLECTED THIS MONTH' : 'RENT DUE'}
-            </Text>
-            <View style={styles.roomBadge}>
-              <Text style={styles.roomBadgeText}>
-                {isLandlord ? `${user.totalUnits || '12'} Units` : `Room ${user.room}`}
+        {isLandlord ? (
+          /* ── LANDLORD HOME UI ───────────────────────────────────────────── */
+          <>
+            {/* Summary Card */}
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.line }, theme.sh1]}>
+              <View style={styles.cardHeaderRow}>
+                <Text style={[styles.cardCaptionLabel, { color: theme.ink3 }]}>
+                  RENT COLLECTED · AUG 2026
+                </Text>
+                <View style={[styles.paidPillBadge, { backgroundColor: theme.okBg }]}>
+                  <Text style={[styles.paidPillDot, { color: theme.ok }]}>● </Text>
+                  <Text style={[styles.paidPillText, { color: theme.ok }]}>84% paid</Text>
+                </View>
+              </View>
+
+              <Text style={[styles.mainAmountText, { color: theme.ink }]}>
+                ₹1,55,000
+              </Text>
+
+              {/* Progress Bar */}
+              <View style={[styles.progressBarTrack, { backgroundColor: theme.surface3 }]}>
+                <View style={[styles.progressBarFill, { width: '84%', backgroundColor: theme.primary }]} />
+              </View>
+
+              <Text style={[styles.pendingSubText, { color: theme.ink3 }]}>
+                Pending <Text style={{ color: theme.ink, fontWeight: FONT_WEIGHT.bold }}>₹30,000</Text> from <Text style={{ color: theme.ink, fontWeight: FONT_WEIGHT.bold }}>3 units</Text>
               </Text>
             </View>
-          </View>
 
-          <Text style={styles.rentAmountText}>
-            {isLandlord ? '₹1,20,000' : '₹12,000'}
-          </Text>
+            {/* Needs Your Attention Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitleHeader, { color: theme.ink3 }]}>
+                NEEDS YOUR ATTENTION
+              </Text>
 
-          <Text style={styles.dueDateText}>
-            {isLandlord ? (
-              <>Pending: <Text style={styles.dueDateBold}>₹24,000 (2 units)</Text></>
-            ) : (
-              <>Due: <Text style={styles.dueDateBold}>5 August</Text></>
-            )}
-          </Text>
-
-          <Pressable
-            onPress={handlePrimaryAction}
-            accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Add Unit or Room' : 'Pay Rent'}
-            style={({ pressed }) => [
-              styles.payRentBtn,
-              { backgroundColor: theme.white },
-              pressed && styles.pressedBtn,
-            ]}>
-            <Ionicons
-              name={isLandlord ? 'add-circle-outline' : 'card-outline'}
-              size={20}
-              color={theme.primary}
-            />
-            <Text style={[styles.payRentText, { color: theme.primary }]}>
-              {isLandlord ? 'Add Room / Tenant' : 'Pay Rent'}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* 2x2 Quick Actions Grid */}
-        <View style={styles.grid}>
-          {/* Card 1: My Profile (Navigates to Profile tab) */}
-          <Pressable
-            onPress={() => handleQuickAction('profile')}
-            accessibilityRole="button"
-            accessibilityLabel="My Profile"
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
-              <Ionicons name="person-outline" size={22} color={theme.primary} />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>My Profile</Text>
-          </Pressable>
-
-          {/* Card 2: Theme & Look */}
-          <Pressable
-            onPress={() => handleQuickAction('theme')}
-            accessibilityRole="button"
-            accessibilityLabel="Change Theme"
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.accent050 }]}>
-              <Ionicons name="color-palette-outline" size={22} color={theme.accent600} />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>Theme & Look</Text>
-          </Pressable>
-
-          {/* Card 3: Receipts / Properties */}
-          <Pressable
-            onPress={() => handleQuickAction(isLandlord ? 'properties' : 'receipts')}
-            accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Properties' : 'My Receipts'}
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
-              <Ionicons
-                name={isLandlord ? 'business-outline' : 'document-text-outline'}
-                size={22}
-                color={theme.primary}
-              />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>
-              {isLandlord ? 'Properties' : 'My Receipts'}
-            </Text>
-          </Pressable>
-
-          {/* Card 4: Issues / Tenants */}
-          <Pressable
-            onPress={() => handleQuickAction(isLandlord ? 'tenants' : 'issues')}
-            accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Tenants' : 'Report Issue'}
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
-              <Ionicons
-                name={isLandlord ? 'people-outline' : 'construct-outline'}
-                size={22}
-                color={theme.primary}
-              />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>
-              {isLandlord ? 'Tenants' : 'Report Issue'}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Recent Payments Section */}
-        <View style={styles.recentSection}>
-          <Text style={[styles.sectionTitle, { color: theme.ink3 }]}>
-            {isLandlord ? 'RECENT TENANT PAYMENTS' : 'RECENT PAYMENTS'}
-          </Text>
-
-          <View style={[styles.paymentsCard, { backgroundColor: theme.surface, borderColor: theme.line }, theme.sh1]}>
-            <View style={styles.paymentRow}>
-              <View style={styles.paymentDetails}>
-                <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
-                  {isLandlord ? 'Amit Kumar — Room 204' : 'Rent — July 2026'}
-                </Text>
-                <Text style={[styles.paymentSub, { color: theme.ink3 }]}>
-                  UPI · 5 Jul
-                </Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: theme.okBg }]}>
-                <Text style={[styles.statusDot, { color: theme.ok }]}>● </Text>
-                <Text style={[styles.statusText, { color: theme.ok }]}>₹12,000</Text>
+              <View style={[styles.card, styles.attentionListCard, { backgroundColor: theme.surface, borderColor: theme.line }, theme.sh1]}>
+                {attentionItems.map((item, idx) => (
+                  <React.Fragment key={item.id}>
+                    {idx > 0 && <View style={[styles.dividerLine, { backgroundColor: theme.line2 }]} />}
+                    <AttentionItemRow
+                      name={item.name}
+                      room={item.room}
+                      statusText={item.statusText}
+                      statusType={item.statusType}
+                      amount={item.amount}
+                      theme={theme}
+                      onCollect={handleCollectItem}
+                    />
+                  </React.Fragment>
+                ))}
               </View>
             </View>
 
-            <View style={[styles.divider, { backgroundColor: theme.line2 }]} />
+            {/* Paid Units Status Banner */}
+            <View style={[styles.statusBanner, { backgroundColor: theme.okBg }]}>
+              <Ionicons name="checkmark" size={18} color={theme.ok} />
+              <Text style={[styles.statusBannerText, { color: theme.ok }]}>
+                <Text style={{ fontWeight: FONT_WEIGHT.bold }}>8 units</Text> paid this month — all caught up for the rest.
+              </Text>
+            </View>
 
-            <View style={styles.paymentRow}>
-              <View style={styles.paymentDetails}>
-                <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
-                  {isLandlord ? 'Rajesh Singh — Room 102' : 'Rent — June 2026'}
-                </Text>
-                <Text style={[styles.paymentSub, { color: theme.ink3 }]}>
-                  {isLandlord ? 'Cash · 5 Jun' : 'UPI · 5 Jun'}
-                </Text>
+            {/* Primary Action Button */}
+            <Pressable
+              onPress={handlePrimaryAction}
+              accessibilityRole="button"
+              accessibilityLabel="Collect Pending Rent"
+              style={({ pressed }) => [
+                styles.primaryCollectBtn,
+                { backgroundColor: theme.primary },
+                theme.sh2,
+                pressed && styles.pressedBtn,
+              ]}>
+              <Ionicons name="card-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.primaryCollectBtnText}>
+                Collect Pending Rent (₹30,000)
+              </Text>
+            </Pressable>
+          </>
+        ) : (
+          /* ── TENANT HOME UI ─────────────────────────────────────────────── */
+          <>
+            <View style={[styles.rentCard, { backgroundColor: theme.primary }, theme.sh2]}>
+              <View style={styles.rentCardHeader}>
+                <Text style={styles.rentDueLabel}>RENT DUE</Text>
+                <View style={styles.roomBadge}>
+                  <Text style={styles.roomBadgeText}>Room {user.room}</Text>
+                </View>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: theme.okBg }]}>
-                <Text style={[styles.statusDot, { color: theme.ok }]}>● </Text>
-                <Text style={[styles.statusText, { color: theme.ok }]}>₹12,000</Text>
+
+              <Text style={styles.rentAmountText}>₹12,000</Text>
+
+              <Text style={styles.dueDateText}>
+                Due: <Text style={styles.dueDateBold}>5 August</Text>
+              </Text>
+
+              <Pressable
+                onPress={handlePrimaryAction}
+                style={({ pressed }) => [
+                  styles.payRentBtn,
+                  { backgroundColor: theme.white },
+                  pressed && styles.pressedBtn,
+                ]}>
+                <Ionicons name="card-outline" size={20} color={theme.primary} />
+                <Text style={[styles.payRentText, { color: theme.primary }]}>Pay Rent</Text>
+              </Pressable>
+            </View>
+
+            {/* Quick Actions Grid */}
+            <View style={styles.grid}>
+              <Pressable
+                onPress={handleNavProfile}
+                style={({ pressed }) => [
+                  styles.actionCard,
+                  { backgroundColor: theme.surface, borderColor: theme.line },
+                  theme.sh1,
+                  pressed && styles.pressedCard,
+                ]}>
+                <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
+                  <Ionicons name="person-outline" size={22} color={theme.primary} />
+                </View>
+                <Text style={[styles.actionTitle, { color: theme.ink }]}>My Profile</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setIsThemeModalVisible(true)}
+                style={({ pressed }) => [
+                  styles.actionCard,
+                  { backgroundColor: theme.surface, borderColor: theme.line },
+                  theme.sh1,
+                  pressed && styles.pressedCard,
+                ]}>
+                <View style={[styles.iconBox, { backgroundColor: theme.accent050 }]}>
+                  <Ionicons name="color-palette-outline" size={22} color={theme.accent600} />
+                </View>
+                <Text style={[styles.actionTitle, { color: theme.ink }]}>Theme & Look</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => handleNavQuickAction('/(tabs)/receipts')}
+                style={({ pressed }) => [
+                  styles.actionCard,
+                  { backgroundColor: theme.surface, borderColor: theme.line },
+                  theme.sh1,
+                  pressed && styles.pressedCard,
+                ]}>
+                <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
+                  <Ionicons name="document-text-outline" size={22} color={theme.primary} />
+                </View>
+                <Text style={[styles.actionTitle, { color: theme.ink }]}>My Receipts</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => handleNavQuickAction('/(tabs)/issues')}
+                style={({ pressed }) => [
+                  styles.actionCard,
+                  { backgroundColor: theme.surface, borderColor: theme.line },
+                  theme.sh1,
+                  pressed && styles.pressedCard,
+                ]}>
+                <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
+                  <Ionicons name="construct-outline" size={22} color={theme.primary} />
+                </View>
+                <Text style={[styles.actionTitle, { color: theme.ink }]}>Report Issue</Text>
+              </Pressable>
+            </View>
+
+            {/* Recent Payments */}
+            <View style={styles.recentSection}>
+              <Text style={[styles.sectionTitleHeader, { color: theme.ink3 }]}>
+                RECENT PAYMENTS
+              </Text>
+
+              <View style={[styles.card, styles.paymentsCard, { backgroundColor: theme.surface, borderColor: theme.line }, theme.sh1]}>
+                <View style={styles.paymentRow}>
+                  <View style={styles.paymentDetails}>
+                    <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
+                      Rent — July 2026
+                    </Text>
+                    <Text style={[styles.paymentSub, { color: theme.ink3 }]}>UPI · 5 Jul</Text>
+                  </View>
+                  <View style={[styles.paidPillBadge, { backgroundColor: theme.okBg }]}>
+                    <Text style={[styles.paidPillDot, { color: theme.ok }]}>● </Text>
+                    <Text style={[styles.paidPillText, { color: theme.ok }]}>₹12,000</Text>
+                  </View>
+                </View>
+
+                <View style={[styles.dividerLine, { backgroundColor: theme.line2 }]} />
+
+                <View style={styles.paymentRow}>
+                  <View style={styles.paymentDetails}>
+                    <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
+                      Rent — June 2026
+                    </Text>
+                    <Text style={[styles.paymentSub, { color: theme.ink3 }]}>UPI · 5 Jun</Text>
+                  </View>
+                  <View style={[styles.paidPillBadge, { backgroundColor: theme.okBg }]}>
+                    <Text style={[styles.paidPillDot, { color: theme.ok }]}>● </Text>
+                    <Text style={[styles.paidPillText, { color: theme.ok }]}>₹12,000</Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
+          </>
+        )}
 
       </ScrollView>
 
@@ -435,7 +549,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.xxl,
-    gap: SPACING.xl,
+    gap: SPACING.lg,
   },
   topHeader: {
     flexDirection: 'row',
@@ -492,9 +606,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    position: 'relative',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#DC2626',
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.75,
   },
   avatarCircle: {
     width: 40,
@@ -502,12 +626,179 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
+    position: 'relative',
   },
   avatarText: {
     fontSize: FONT_SIZE.base,
     fontWeight: FONT_WEIGHT.heavy,
   },
+  avatarDot: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#DC2626',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+
+  /* Cards */
+  card: {
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xl,
+    borderWidth: 1,
+    gap: SPACING.md,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardCaptionLabel: {
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.bold,
+    letterSpacing: 0.8,
+  },
+  paidPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+  },
+  paidPillDot: {
+    fontSize: 10,
+  },
+  paidPillText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  mainAmountText: {
+    fontSize: 34,
+    fontWeight: FONT_WEIGHT.heavy,
+    letterSpacing: -0.5,
+    marginVertical: -2,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  pendingSubText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.medium,
+  },
+
+  /* Sections */
+  sectionContainer: {
+    gap: SPACING.sm,
+  },
+  sectionTitleHeader: {
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.bold,
+    letterSpacing: 0.8,
+    marginLeft: 2,
+  },
+  attentionListCard: {
+    paddingVertical: SPACING.sm,
+    gap: 0,
+  },
+  attentionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    gap: SPACING.md,
+  },
+  attentionDotWrapper: {
+    justifyContent: 'center',
+  },
+  statusDotRed: {
+    color: '#DC2626',
+    fontSize: 14,
+  },
+  statusDotAmber: {
+    color: '#D97706',
+    fontSize: 14,
+  },
+  attentionDetails: {
+    flex: 1,
+    gap: 2,
+  },
+  tenantNameText: {
+    fontSize: FONT_SIZE.base,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  roomText: {
+    fontWeight: FONT_WEIGHT.medium,
+  },
+  overdueSubText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.medium,
+  },
+  collectBtnLightRed: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+  },
+  collectBtnLightRedText: {
+    color: '#DC2626',
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  collectBtnAmber: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+  },
+  collectBtnAmberText: {
+    color: '#FFFFFF',
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  dividerLine: {
+    height: 1,
+    width: '100%',
+  },
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.lg,
+  },
+  statusBannerText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: FONT_WEIGHT.medium,
+    flex: 1,
+  },
+  primaryCollectBtn: {
+    height: 54,
+    borderRadius: RADIUS.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    marginTop: SPACING.xs,
+  },
+  primaryCollectBtnText: {
+    color: '#FFFFFF',
+    fontSize: FONT_SIZE.md,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+
+  /* Tenant UI Specifics */
   rentCard: {
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
@@ -595,15 +886,8 @@ const styles = StyleSheet.create({
   recentSection: {
     gap: SPACING.sm,
   },
-  sectionTitle: {
-    fontSize: FONT_SIZE.caption,
-    fontWeight: FONT_WEIGHT.bold,
-    letterSpacing: 0.8,
-    marginBottom: 2,
-  },
   paymentsCard: {
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
+    paddingVertical: 0,
     overflow: 'hidden',
   },
   paymentRow: {
@@ -622,24 +906,6 @@ const styles = StyleSheet.create({
   paymentSub: {
     fontSize: FONT_SIZE.sm,
     fontWeight: FONT_WEIGHT.medium,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.full,
-  },
-  statusDot: {
-    fontSize: 10,
-  },
-  statusText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: FONT_WEIGHT.bold,
-  },
-  divider: {
-    height: 1,
-    width: '100%',
   },
 
   /* Modal Styling */

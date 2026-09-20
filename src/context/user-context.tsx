@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
 export type UserRole = 'tenant' | 'landlord';
 
@@ -22,13 +22,13 @@ interface UserContextType {
 }
 
 const DEFAULT_USER: UserProfile = {
-  name: 'Amit Kumar',
+  name: 'Rajesh Sharma',
   phone: '+91 98765 43210',
-  email: 'amit.kumar@roomhaiji.com',
-  role: 'tenant',
+  email: 'rajesh.sharma@roomhaiji.com',
+  role: 'landlord',
   property: 'Sharma Building',
   room: '204',
-  upiId: 'amit.kumar@upi',
+  upiId: 'rajesh@upi',
   totalUnits: '12',
   avatarColor: '#4F46E5',
 };
@@ -37,37 +37,47 @@ const UserContext = createContext<UserContextType>({
   user: DEFAULT_USER,
   updateProfile: () => {},
   toggleRole: () => {},
-  initials: 'AK',
+  initials: 'RS',
 });
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile>(DEFAULT_USER);
 
-  const updateProfile = (partial: Partial<UserProfile>) => {
+  const updateProfile = useCallback((partial: Partial<UserProfile>) => {
     setUser((prev) => ({ ...prev, ...partial }));
-  };
+  }, []);
 
-  const toggleRole = () => {
+  const toggleRole = useCallback(() => {
     setUser((prev) => ({
       ...prev,
       role: prev.role === 'landlord' ? 'tenant' : 'landlord',
-      name: prev.role === 'landlord' ? 'Amit Kumar' : 'Sharmaji',
+      name: prev.role === 'landlord' ? 'Amit Kumar' : 'Rajesh Sharma',
     }));
-  };
+  }, []);
 
-  const initials = user.name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase() || 'RH';
+  const initials = useMemo(() => {
+    return (
+      user.name
+        .split(' ')
+        .filter(Boolean)
+        .map((part) => part[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'RS'
+    );
+  }, [user.name]);
 
-  return (
-    <UserContext.Provider value={{ user, updateProfile, toggleRole, initials }}>
-      {children}
-    </UserContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      updateProfile,
+      toggleRole,
+      initials,
+    }),
+    [user, updateProfile, toggleRole, initials]
   );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {
