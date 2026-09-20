@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,36 +18,17 @@ import {
   SPACING,
   TYPOGRAPHY,
 } from '@/constants/theme';
+import { useUser } from '@/context/user-context';
 import { useTheme } from '@/hooks/use-theme';
 
 export function HomeScreen() {
-  const { theme } = useTheme();
-  const params = useLocalSearchParams<{
-    role?: string;
-    userName?: string;
-    fullName?: string;
-    inviteCode?: string;
-    property?: string;
-    room?: string;
-    units?: string;
-  }>();
+  const { theme, isDark, themeMode, setThemeMode, toggleTheme } = useTheme();
+  const { user, toggleRole, initials } = useUser();
 
-  const isLandlord = params.role === 'landlord';
+  // Theme Modal State
+  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
 
-  // Dynamic user details with fallbacks
-  const displayName = params.userName || params.fullName || (isLandlord ? 'Sharmaji' : 'Amit');
-  const displayBuilding = params.property || 'Sharma Building';
-  const displayRoom = params.inviteCode || params.room || '204';
-  const roomBadgeText = displayRoom.startsWith('Room') ? displayRoom : `Room ${displayRoom}`;
-  const totalUnits = params.units || '12';
-
-  // User initials for avatar
-  const initials = displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase() || (isLandlord ? 'SB' : 'AK');
+  const isLandlord = user.role === 'landlord';
 
   const handlePrimaryAction = useCallback(() => {
     if (isLandlord) {
@@ -59,17 +41,20 @@ export function HomeScreen() {
     }
   }, [isLandlord]);
 
-  const handleQuickAction = useCallback((action: string) => {
-    if (action === 'receipts' || action === 'tenants') {
-      router.push({ pathname: '/(tabs)/receipts', params: { role: params.role } } as any);
-    } else if (action === 'issues' || action === 'payments') {
-      router.push({ pathname: '/(tabs)/issues', params: { role: params.role } } as any);
-    } else if (action === 'agreement' || action === 'properties') {
-      router.push({ pathname: '/(tabs)/pay', params: { role: params.role } } as any);
-    } else if (action === 'landlord' || action === 'profile') {
-      router.push({ pathname: '/(tabs)/profile', params: { role: params.role } } as any);
-    }
-  }, [params.role]);
+  const handleQuickAction = useCallback(
+    (action: string) => {
+      if (action === 'profile') {
+        router.push({ pathname: '/(tabs)/profile', params: { role: user.role } } as any);
+      } else if (action === 'theme') {
+        setIsThemeModalVisible(true);
+      } else if (action === 'receipts' || action === 'properties') {
+        router.push({ pathname: '/(tabs)/receipts', params: { role: user.role } } as any);
+      } else if (action === 'issues' || action === 'tenants') {
+        router.push({ pathname: '/(tabs)/issues', params: { role: user.role } } as any);
+      }
+    },
+    [user.role]
+  );
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.surface2 }]}>
@@ -80,55 +65,93 @@ export function HomeScreen() {
           <View style={styles.greetingContainer}>
             <View style={styles.nameRow}>
               <Text style={[styles.greetingText, { color: theme.ink }]}>
-                Hi, {displayName}
+                Hi, {user.name}
               </Text>
               <Text style={styles.waveEmoji}>{isLandlord ? '👋' : '👏'}</Text>
             </View>
-            <Text style={[styles.subtitleText, { color: theme.ink3 }]}>
-              {isLandlord ? 'Landlord' : 'Tenant'} · {displayBuilding}
-            </Text>
-          </View>
 
-          <View style={styles.headerRightActions}>
-            <Pressable
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Notifications"
-              style={({ pressed }) => [
-                styles.iconBtn,
-                pressed && styles.pressed,
-              ]}>
-              <Ionicons name="notifications-outline" size={22} color={theme.ink} />
-            </Pressable>
+            <View style={styles.subRow}>
+              <Pressable
+                onPress={toggleRole}
+                hitSlop={6}
+                style={({ pressed }) => [
+                  styles.roleBadge,
+                  { backgroundColor: isLandlord ? theme.accent050 : theme.primary050 },
+                  pressed && styles.pressed,
+                ]}>
+                <Text
+                  style={[
+                    styles.roleBadgeText,
+                    { color: isLandlord ? theme.accent600 : theme.primary },
+                  ]}>
+                  {isLandlord ? '👑 Landlord' : '🏠 Tenant'}
+                </Text>
+                <Ionicons
+                  name="swap-horizontal-outline"
+                  size={12}
+                  color={isLandlord ? theme.accent600 : theme.primary}
+                />
+              </Pressable>
 
-            <View style={[styles.avatarCircle, { backgroundColor: theme.primary050 }]}>
-              <Text style={[styles.avatarText, { color: theme.primary }]}>
-                {initials}
+              <Text style={[styles.subtitleText, { color: theme.ink3 }]}>
+                · {user.property}
               </Text>
             </View>
           </View>
+
+          <View style={styles.headerRightActions}>
+            {/* Quick 1-Tap Theme Switcher */}
+            <Pressable
+              onPress={toggleTheme}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle Theme Mode"
+              style={({ pressed }) => [
+                styles.iconBtn,
+                { backgroundColor: theme.surface, borderColor: theme.line },
+                pressed && styles.pressed,
+              ]}>
+              <Ionicons
+                name={isDark ? 'sunny' : 'moon'}
+                size={18}
+                color={isDark ? '#FBBF24' : theme.ink}
+              />
+            </Pressable>
+
+            {/* User Avatar Circle -> Navigates to Profile Screen */}
+            <Pressable
+              onPress={() => router.push({ pathname: '/(tabs)/profile', params: { role: user.role } } as any)}
+              accessibilityRole="button"
+              accessibilityLabel="My Profile"
+              style={({ pressed }) => [
+                styles.avatarCircle,
+                { backgroundColor: theme.primary050, borderColor: theme.primary },
+                pressed && styles.pressed,
+              ]}>
+              <Text style={[styles.avatarText, { color: theme.primary }]}>
+                {initials}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Hero Card */}
+        {/* Hero Rent Card */}
         <View style={[styles.rentCard, { backgroundColor: theme.primary }, theme.sh2]}>
-          {/* Card Top Row */}
           <View style={styles.rentCardHeader}>
             <Text style={styles.rentDueLabel}>
               {isLandlord ? 'RENT COLLECTED THIS MONTH' : 'RENT DUE'}
             </Text>
             <View style={styles.roomBadge}>
               <Text style={styles.roomBadgeText}>
-                {isLandlord ? `${totalUnits} Units` : roomBadgeText}
+                {isLandlord ? `${user.totalUnits || '12'} Units` : `Room ${user.room}`}
               </Text>
             </View>
           </View>
 
-          {/* Rent Amount */}
           <Text style={styles.rentAmountText}>
             {isLandlord ? '₹1,20,000' : '₹12,000'}
           </Text>
 
-          {/* Due / Pending Subtitle */}
           <Text style={styles.dueDateText}>
             {isLandlord ? (
               <>Pending: <Text style={styles.dueDateBold}>₹24,000 (2 units)</Text></>
@@ -137,7 +160,6 @@ export function HomeScreen() {
             )}
           </Text>
 
-          {/* Action Button */}
           <Pressable
             onPress={handlePrimaryAction}
             accessibilityRole="button"
@@ -160,7 +182,41 @@ export function HomeScreen() {
 
         {/* 2x2 Quick Actions Grid */}
         <View style={styles.grid}>
-          {/* Card 1 */}
+          {/* Card 1: My Profile (Navigates to Profile tab) */}
+          <Pressable
+            onPress={() => handleQuickAction('profile')}
+            accessibilityRole="button"
+            accessibilityLabel="My Profile"
+            style={({ pressed }) => [
+              styles.actionCard,
+              { backgroundColor: theme.surface, borderColor: theme.line },
+              theme.sh1,
+              pressed && styles.pressedCard,
+            ]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
+              <Ionicons name="person-outline" size={22} color={theme.primary} />
+            </View>
+            <Text style={[styles.actionTitle, { color: theme.ink }]}>My Profile</Text>
+          </Pressable>
+
+          {/* Card 2: Theme & Look */}
+          <Pressable
+            onPress={() => handleQuickAction('theme')}
+            accessibilityRole="button"
+            accessibilityLabel="Change Theme"
+            style={({ pressed }) => [
+              styles.actionCard,
+              { backgroundColor: theme.surface, borderColor: theme.line },
+              theme.sh1,
+              pressed && styles.pressedCard,
+            ]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.accent050 }]}>
+              <Ionicons name="color-palette-outline" size={22} color={theme.accent600} />
+            </View>
+            <Text style={[styles.actionTitle, { color: theme.ink }]}>Theme & Look</Text>
+          </Pressable>
+
+          {/* Card 3: Receipts / Properties */}
           <Pressable
             onPress={() => handleQuickAction(isLandlord ? 'properties' : 'receipts')}
             accessibilityRole="button"
@@ -183,11 +239,11 @@ export function HomeScreen() {
             </Text>
           </Pressable>
 
-          {/* Card 2 */}
+          {/* Card 4: Issues / Tenants */}
           <Pressable
-            onPress={() => handleQuickAction(isLandlord ? 'tenants' : 'agreement')}
+            onPress={() => handleQuickAction(isLandlord ? 'tenants' : 'issues')}
             accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Tenants' : 'Agreement'}
+            accessibilityLabel={isLandlord ? 'Tenants' : 'Report Issue'}
             style={({ pressed }) => [
               styles.actionCard,
               { backgroundColor: theme.surface, borderColor: theme.line },
@@ -196,59 +252,13 @@ export function HomeScreen() {
             ]}>
             <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
               <Ionicons
-                name={isLandlord ? 'people-outline' : 'newspaper-outline'}
+                name={isLandlord ? 'people-outline' : 'construct-outline'}
                 size={22}
                 color={theme.primary}
               />
             </View>
             <Text style={[styles.actionTitle, { color: theme.ink }]}>
-              {isLandlord ? 'Tenants' : 'Agreement'}
-            </Text>
-          </Pressable>
-
-          {/* Card 3 */}
-          <Pressable
-            onPress={() => handleQuickAction(isLandlord ? 'payments' : 'issues')}
-            accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Payments' : 'Report Issue'}
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
-              <Ionicons
-                name={isLandlord ? 'card-outline' : 'construct-outline'}
-                size={22}
-                color={theme.primary}
-              />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>
-              {isLandlord ? 'Payments' : 'Report Issue'}
-            </Text>
-          </Pressable>
-
-          {/* Card 4 */}
-          <Pressable
-            onPress={() => handleQuickAction(isLandlord ? 'profile' : 'landlord')}
-            accessibilityRole="button"
-            accessibilityLabel={isLandlord ? 'Profile' : 'Landlord Info'}
-            style={({ pressed }) => [
-              styles.actionCard,
-              { backgroundColor: theme.surface, borderColor: theme.line },
-              theme.sh1,
-              pressed && styles.pressedCard,
-            ]}>
-            <View style={[styles.iconBox, { backgroundColor: theme.primary050 }]}>
-              <Ionicons
-                name={isLandlord ? 'person-outline' : 'home-outline'}
-                size={22}
-                color={theme.primary}
-              />
-            </View>
-            <Text style={[styles.actionTitle, { color: theme.ink }]}>
-              {isLandlord ? 'Profile' : 'Landlord Info'}
+              {isLandlord ? 'Tenants' : 'Report Issue'}
             </Text>
           </Pressable>
         </View>
@@ -260,7 +270,6 @@ export function HomeScreen() {
           </Text>
 
           <View style={[styles.paymentsCard, { backgroundColor: theme.surface, borderColor: theme.line }, theme.sh1]}>
-            {/* Payment Item 1 */}
             <View style={styles.paymentRow}>
               <View style={styles.paymentDetails}>
                 <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
@@ -278,7 +287,6 @@ export function HomeScreen() {
 
             <View style={[styles.divider, { backgroundColor: theme.line2 }]} />
 
-            {/* Payment Item 2 */}
             <View style={styles.paymentRow}>
               <View style={styles.paymentDetails}>
                 <Text style={[styles.paymentItemTitle, { color: theme.ink }]}>
@@ -297,6 +305,124 @@ export function HomeScreen() {
         </View>
 
       </ScrollView>
+
+      {/* ── THEME SWITCHER MODAL ─────────────────────────────────────────── */}
+      <Modal
+        visible={isThemeModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setIsThemeModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.themeModalCard, { backgroundColor: theme.surface, borderColor: theme.line }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.ink }]}>Theme & Look</Text>
+              <Pressable hitSlop={8} onPress={() => setIsThemeModalVisible(false)}>
+                <Ionicons name="close" size={22} color={theme.ink3} />
+              </Pressable>
+            </View>
+
+            <View style={styles.themeOptionsContainer}>
+              <Pressable
+                onPress={() => setThemeMode('light')}
+                style={[
+                  styles.themeOptionRow,
+                  {
+                    backgroundColor: themeMode === 'light' ? theme.primary050 : theme.surface2,
+                    borderColor: themeMode === 'light' ? theme.primary : theme.line,
+                  },
+                ]}>
+                <Ionicons
+                  name="sunny"
+                  size={24}
+                  color={themeMode === 'light' ? theme.primary : theme.ink3}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.themeOptionTitle,
+                      { color: themeMode === 'light' ? theme.primary : theme.ink },
+                    ]}>
+                    Light Mode ☀️
+                  </Text>
+                  <Text style={[styles.themeOptionSub, { color: theme.ink3 }]}>Clean slate background</Text>
+                </View>
+                {themeMode === 'light' && (
+                  <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                )}
+              </Pressable>
+
+              <Pressable
+                onPress={() => setThemeMode('dark')}
+                style={[
+                  styles.themeOptionRow,
+                  {
+                    backgroundColor: themeMode === 'dark' ? theme.primary050 : theme.surface2,
+                    borderColor: themeMode === 'dark' ? theme.primary : theme.line,
+                  },
+                ]}>
+                <Ionicons
+                  name="moon"
+                  size={24}
+                  color={themeMode === 'dark' ? theme.primary : theme.ink3}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.themeOptionTitle,
+                      { color: themeMode === 'dark' ? theme.primary : theme.ink },
+                    ]}>
+                    Dark Mode 🌙
+                  </Text>
+                  <Text style={[styles.themeOptionSub, { color: theme.ink3 }]}>Sleek dark aesthetics</Text>
+                </View>
+                {themeMode === 'dark' && (
+                  <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                )}
+              </Pressable>
+
+              <Pressable
+                onPress={() => setThemeMode('system')}
+                style={[
+                  styles.themeOptionRow,
+                  {
+                    backgroundColor: themeMode === 'system' ? theme.primary050 : theme.surface2,
+                    borderColor: themeMode === 'system' ? theme.primary : theme.line,
+                  },
+                ]}>
+                <Ionicons
+                  name="phone-portrait"
+                  size={24}
+                  color={themeMode === 'system' ? theme.primary : theme.ink3}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.themeOptionTitle,
+                      { color: themeMode === 'system' ? theme.primary : theme.ink },
+                    ]}>
+                    System Default 📱
+                  </Text>
+                  <Text style={[styles.themeOptionSub, { color: theme.ink3 }]}>Match your OS settings</Text>
+                </View>
+                {themeMode === 'system' && (
+                  <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                )}
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={() => setIsThemeModalVisible(false)}
+              style={({ pressed }) => [
+                styles.saveBtn,
+                { backgroundColor: theme.primary, marginTop: SPACING.md },
+                pressed && styles.pressedBtn,
+              ]}>
+              <Text style={styles.saveBtnText}>Done</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -333,6 +459,23 @@ const styles = StyleSheet.create({
   waveEmoji: {
     fontSize: FONT_SIZE.title,
   },
+  subRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: SPACING.xs + 2,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+  },
+  roleBadgeText: {
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.bold,
+  },
   subtitleText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: FONT_WEIGHT.medium,
@@ -340,24 +483,30 @@ const styles = StyleSheet.create({
   headerRightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
+    gap: SPACING.sm,
   },
   iconBtn: {
-    padding: SPACING.xs,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  avatarCircle: {
     width: 38,
     height: 38,
     borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
   },
   avatarText: {
     fontSize: FONT_SIZE.base,
-    fontWeight: FONT_WEIGHT.bold,
+    fontWeight: FONT_WEIGHT.heavy,
   },
   rentCard: {
     borderRadius: RADIUS.xl,
@@ -491,5 +640,58 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     width: '100%',
+  },
+
+  /* Modal Styling */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  themeModalCard: {
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
+    padding: SPACING.xl,
+    borderWidth: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.lg,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZE.xl,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  saveBtn: {
+    height: 50,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.sm,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: FONT_SIZE.md,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  themeOptionsContainer: {
+    gap: SPACING.md,
+  },
+  themeOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.lg,
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1.5,
+  },
+  themeOptionTitle: {
+    fontSize: FONT_SIZE.base,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  themeOptionSub: {
+    fontSize: FONT_SIZE.caption,
   },
 });

@@ -4,8 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { UserProvider } from '@/context/user-context';
 import { I18nProvider } from '@/hooks/use-i18n';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemeProvider, useTheme } from '@/hooks/use-theme';
 
 // Prevent the splash screen from auto-hiding before assets are loaded.
 SplashScreen.preventAutoHideAsync();
@@ -35,8 +36,12 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <I18nProvider defaultLanguage="en">
-      <RootNavigator />
-    </I18nProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <I18nProvider defaultLanguage="en">
+          <RootNavigator />
+        </I18nProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
