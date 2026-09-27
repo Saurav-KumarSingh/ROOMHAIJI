@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "tenantName": "Amit Kumar",
+    "subtitle": "Rent — Aug 2026 · UPI · 5 Aug",
+    "amount": "₹12,000",
+    "status": "received_upi",
+    "category": "Received",
+    "paymentMethod": "UPI",
+    "date": "5 Aug",
+    "iconType": "person"
+  },
+  {
+    "id": "2",
+    "tenantName": "Karan Patel",
+    "subtitle": "Rent — Aug 2026 · UPI · 4 Aug",
+    "amount": "₹13,000",
+    "status": "received_upi",
+    "category": "Received",
+    "paymentMethod": "UPI",
+    "date": "4 Aug",
+    "iconType": "person"
+  },
+  {
+    "id": "3",
+    "tenantName": "Sneha Rao",
+    "subtitle": "Rent — Aug 2026 · Cash · 3 Aug",
+    "amount": "₹10,000",
+    "status": "received_cash",
+    "category": "Cash",
+    "paymentMethod": "Cash",
+    "date": "3 Aug",
+    "iconType": "person"
+  },
+  {
+    "id": "4",
+    "tenantName": "Priya Sharma",
+    "subtitle": "Rent — Aug 2026 · Due",
+    "amount": "₹10,000",
+    "status": "overdue",
+    "category": "Overdue",
+    "paymentMethod": "—",
+    "date": "Due 1 Aug",
+    "iconType": "clock"
+  },
+  {
+    "id": "5",
+    "tenantName": "Rahul Singh",
+    "subtitle": "Rent — Aug 2026 · Overdue 5 days",
+    "amount": "₹12,000",
+    "status": "overdue",
+    "category": "Overdue",
+    "paymentMethod": "—",
+    "date": "Due 1 Aug",
+    "iconType": "clock"
+  }
+]

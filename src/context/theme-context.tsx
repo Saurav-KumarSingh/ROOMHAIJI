@@ -1,67 +1,40 @@
-import React, { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 import { DARK_THEME, LIGHT_THEME, THEMES, type ColorScheme, type ThemeTokens } from '@/constants/theme';
+import { useThemeStore, type ThemeMode } from '@/store/theme-store';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
-
-interface ThemeContextType {
-  theme: ThemeTokens;
-  isDark: boolean;
-  colorScheme: ColorScheme;
-  themeMode: ThemeMode;
-  setThemeMode: (mode: ThemeMode) => void;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType>({
-  theme: LIGHT_THEME,
-  isDark: false,
-  colorScheme: 'light',
-  themeMode: 'system',
-  setThemeMode: () => {},
-  toggleTheme: () => {},
-});
+export type { ThemeMode };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const systemScheme = useRNColorScheme();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
-
-  const activeScheme: ColorScheme = useMemo(() => {
-    return themeMode === 'system'
-      ? systemScheme === 'dark'
-        ? 'dark'
-        : 'light'
-      : themeMode;
-  }, [themeMode, systemScheme]);
-
-  const isDark = activeScheme === 'dark';
-  const theme = THEMES[activeScheme];
-
-  const setThemeMode = useCallback((mode: ThemeMode) => {
-    setThemeModeState(mode);
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setThemeModeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      theme,
-      isDark,
-      colorScheme: activeScheme,
-      themeMode,
-      setThemeMode,
-      toggleTheme,
-    }),
-    [theme, isDark, activeScheme, themeMode, setThemeMode, toggleTheme]
-  );
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useTheme() {
-  return useContext(ThemeContext);
+  const systemScheme = useRNColorScheme();
+  const themeMode = useThemeStore((state) => state.themeMode) || 'system';
+  const setThemeMode = useThemeStore((state) => state.setThemeMode);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+
+  const activeScheme: ColorScheme =
+    themeMode === 'system'
+      ? systemScheme === 'dark'
+        ? 'dark'
+        : 'light'
+      : themeMode === 'dark'
+        ? 'dark'
+        : 'light';
+
+  const isDark = activeScheme === 'dark';
+  const theme = THEMES[activeScheme] || LIGHT_THEME;
+
+  return {
+    theme: theme || LIGHT_THEME,
+    isDark,
+    colorScheme: activeScheme,
+    themeMode,
+    setThemeMode,
+    toggleTheme,
+  };
 }
 
 export function getTheme(scheme?: ColorScheme | null): ThemeTokens {

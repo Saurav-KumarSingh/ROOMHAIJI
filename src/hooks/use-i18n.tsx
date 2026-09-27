@@ -1,42 +1,25 @@
-import { I18N_TRANSLATIONS, type SupportedLanguage, type TranslationKey } from '@/constants/i18n';
-import { createContext, useContext, useState, type ReactNode } from 'react';
-
-interface I18nContextType {
-  language: SupportedLanguage;
-  setLanguage: (lang: SupportedLanguage) => void;
-  t: (key: TranslationKey) => string;
-}
-
-const I18nContext = createContext<I18nContextType>({
-  language: 'en',
-  setLanguage: () => {},
-  t: (key) => I18N_TRANSLATIONS.en[key] ?? key,
-});
+import { type SupportedLanguage, type TranslationKey } from '@/constants/i18n';
+import { useI18nStore } from '@/store/i18n-store';
+import { type ReactNode } from 'react';
 
 export function I18nProvider({
   children,
-  defaultLanguage = 'en',
+  defaultLanguage,
 }: {
   children: ReactNode;
   defaultLanguage?: SupportedLanguage;
 }) {
-  const [language, setLanguage] = useState<SupportedLanguage>(defaultLanguage);
-
-  const t = (key: TranslationKey): string => {
-    return I18N_TRANSLATIONS[language]?.[key] ?? I18N_TRANSLATIONS.en[key] ?? key;
-  };
-
-  return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <>{children}</>;
 }
 
 /**
  * Hook to access active language, language setter, and translate function `t(key)`.
+ * Backed by Zustand store.
  */
 export function useI18n() {
-  return useContext(I18nContext);
-}
+  const language = useI18nStore((state) => state.language);
+  const setLanguage = useI18nStore((state) => state.setLanguage);
+  const t = useI18nStore((state) => state.t);
 
+  return { language, setLanguage, t };
+}

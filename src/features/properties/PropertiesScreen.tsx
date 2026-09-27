@@ -19,6 +19,7 @@ import {
 } from '@/constants/theme';
 import { useUser } from '@/context/user-context';
 import { useTheme } from '@/hooks/use-theme';
+import { usePropertiesStore } from '@/store/properties-store';
 
 // ── DEMO PROPERTIES DATA DECLARED ON THE FILE ────────────────────────────────
 export interface PropertyItem {
@@ -156,6 +157,7 @@ const PropertyCard = memo(function PropertyCard({
 export function PropertiesScreen() {
   const { theme } = useTheme();
   const { user } = useUser();
+  const properties = usePropertiesStore((state) => state.properties);
 
   const handleBack = useCallback(() => {
     if (router.canGoBack()) {
@@ -216,8 +218,8 @@ export function PropertiesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
         
-        {/* Render Demo Properties Array */}
-        {DEMO_PROPERTIES.map((property) => (
+        {/* Render Properties Array from Zustand Store */}
+        {properties.map((property) => (
           <PropertyCard
             key={property.id}
             item={property}

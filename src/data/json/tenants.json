@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "initials": "AK",
+    "avatarBg": "#FEF3C7",
+    "avatarColor": "#D97706",
+    "name": "Amit Kumar",
+    "room": "204",
+    "monthlyRent": "₹12,000/MO",
+    "status": "Paid",
+    "phone": "+91 98112 34567"
+  },
+  {
+    "id": "2",
+    "initials": "PS",
+    "avatarBg": "#DBEAFE",
+    "avatarColor": "#2563EB",
+    "name": "Priya Sharma",
+    "room": "105",
+    "monthlyRent": "₹10,000/MO",
+    "status": "Overdue",
+    "phone": "+91 98223 45678"
+  },
+  {
+    "id": "3",
+    "initials": "RS",
+    "avatarBg": "#F3E8FF",
+    "avatarColor": "#7C3AED",
+    "name": "Rahul Singh",
+    "room": "103",
+    "monthlyRent": "₹12,000/MO",
+    "status": "Overdue",
+    "phone": "+91 98334 56789"
+  },
+  {
+    "id": "4",
+    "initials": "KP",
+    "avatarBg": "#E0E7FF",
+    "avatarColor": "#4F46E5",
+    "name": "Karan Patel",
+    "room": "301",
+    "monthlyRent": "₹13,000/MO",
+    "status": "Due",
+    "phone": "+91 98445 67890"
+  },
+  {
+    "id": "5",
+    "initials": "SR",
+    "avatarBg": "#DCFCE7",
+    "avatarColor": "#16A34A",
+    "name": "Sneha Rao",
+    "room": "202",
+    "monthlyRent": "₹11,000/MO",
+    "status": "Paid",
+    "phone": "+91 98556 78901"
+  }
+]

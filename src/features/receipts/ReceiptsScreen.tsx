@@ -18,40 +18,9 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { ReceiptDetailModal, ReceiptItem } from './ReceiptDetailModal';
+import { useReceiptsStore } from '@/store/receipts-store';
 
-const INITIAL_RECEIPTS: ReceiptItem[] = [
-  {
-    id: 'receipt-aug-2026',
-    month: 'Aug 2026',
-    amount: '₹12,000',
-    paidDate: '5 Aug 2026',
-    transactionId: 'TXN-940218',
-    landlordName: 'Rajesh Sharma',
-    propertyName: 'Sharma Building',
-    roomNo: '204',
-  },
-  {
-    id: 'receipt-jul-2026',
-    month: 'Jul 2026',
-    amount: '₹12,000',
-    paidDate: '5 Jul 2026',
-    transactionId: 'TXN-839102',
-    landlordName: 'Rajesh Sharma',
-    propertyName: 'Sharma Building',
-    roomNo: '204',
-  },
-  {
-    id: 'receipt-jun-2026',
-    month: 'Jun 2026',
-    amount: '₹12,000',
-    paidDate: '5 Jun 2026',
-    transactionId: 'TXN-728103',
-    landlordName: 'Rajesh Sharma',
-    propertyName: 'Sharma Building',
-    roomNo: '204',
-  },
-];
+import { ReceiptDetailModal, ReceiptItem } from './ReceiptDetailModal';
 
 export const ReceiptsScreen = memo(function ReceiptsScreen() {
   const { theme } = useTheme();
@@ -74,9 +43,10 @@ export const ReceiptsScreen = memo(function ReceiptsScreen() {
     [displayName],
   );
 
-  // State management
-  const [receiptsList, setReceiptsList] = useState<ReceiptItem[]>(
-    params.empty === 'true' ? [] : INITIAL_RECEIPTS,
+  const globalReceipts = useReceiptsStore((state) => state.receipts);
+  const receiptsList = useMemo(
+    () => (params.empty === 'true' ? [] : globalReceipts),
+    [params.empty, globalReceipts]
   );
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null);
 

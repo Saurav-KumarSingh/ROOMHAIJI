@@ -19,6 +19,7 @@ import {
 } from '@/constants/theme';
 import { useUser } from '@/context/user-context';
 import { useTheme } from '@/hooks/use-theme';
+import { useTenantsStore } from '@/store/tenants-store';
 
 export type TenantFilterPill = 'All' | 'Paid' | 'Due' | 'Overdue' | 'Vacant';
 
@@ -157,6 +158,7 @@ const TenantCardRow = memo(function TenantCardRow({
 // ── MAIN LANDLORD TENANTS SCREEN ─────────────────────────────────────────────
 export function LandlordTenantsScreen() {
   const { theme } = useTheme();
+  const tenants = useTenantsStore((state) => state.tenants);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<TenantFilterPill>('All');
@@ -167,7 +169,7 @@ export function LandlordTenantsScreen() {
   );
 
   const filteredTenants = useMemo(() => {
-    return DEMO_TENANTS.filter((tenant) => {
+    return tenants.filter((tenant) => {
       // Pill Filter Match
       const matchesPill =
         activeFilter === 'All' ? true : tenant.status === activeFilter;
@@ -182,7 +184,7 @@ export function LandlordTenantsScreen() {
 
       return matchesPill && matchesSearch;
     });
-  }, [activeFilter, searchQuery]);
+  }, [tenants, activeFilter, searchQuery]);
 
   const handleBack = useCallback(() => {
     if (router.canGoBack()) {

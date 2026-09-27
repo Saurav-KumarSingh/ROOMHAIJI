@@ -20,6 +20,7 @@ import {
   SPACING,
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTenantsStore } from '@/store/tenants-store';
 
 export type StepType = 1 | 2 | 3 | 4;
 
@@ -265,13 +266,36 @@ export function AddTenantScreen() {
     setCurrentStep(step);
   }, []);
 
+  const addTenant = useTenantsStore((state) => state.addTenant);
+
   const handleContinue = useCallback(() => {
     if (currentStep < 4) {
       setCurrentStep((prev) => (prev + 1) as StepType);
     } else {
+      const name = fullName.trim() || 'New Tenant';
+      const initials = name
+        .split(' ')
+        .filter(Boolean)
+        .map((p) => p[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'NT';
+
+      addTenant({
+        id: `tenant-${Date.now()}`,
+        initials,
+        avatarBg: '#E0E7FF',
+        avatarColor: '#4F46E5',
+        name,
+        room: roomNumber || '101',
+        monthlyRent: `₹${rentAmount || '12,000'}/MO`,
+        status: 'Due',
+        phone: mobileNumber ? `+91 ${mobileNumber}` : '+91 99999 00000',
+      });
+
       handleClose();
     }
-  }, [currentStep, handleClose]);
+  }, [currentStep, fullName, roomNumber, rentAmount, mobileNumber, addTenant, handleClose]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.surface2 }]}>

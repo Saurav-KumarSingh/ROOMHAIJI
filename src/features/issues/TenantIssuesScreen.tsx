@@ -21,6 +21,8 @@ import {
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { useIssuesStore } from '@/store/issues-store';
+
 import { CreateIssueFormData, CreateIssueFormScreen } from './CreateIssueFormScreen';
 
 export interface IssueItem {
@@ -35,28 +37,6 @@ export interface IssueItem {
   hasPhoto?: boolean;
 }
 
-// Initial issue list matching the mockup image design exactly
-const INITIAL_ISSUES: IssueItem[] = [
-  {
-    id: 'issue-1',
-    title: 'Fan not working',
-    room: 'Room 204',
-    status: 'In progress',
-    dateStr: 'In progress',
-    icon: 'construct-outline',
-    category: 'electrical',
-  },
-  {
-    id: 'issue-2',
-    title: 'Leaking tap',
-    room: 'Room 204',
-    status: 'Resolved',
-    dateStr: 'Resolved 2 Jul',
-    icon: 'checkmark',
-    category: 'plumbing',
-  },
-];
-
 export function TenantIssuesScreen() {
   const { theme } = useTheme();
   const params = useLocalSearchParams<{
@@ -69,7 +49,8 @@ export function TenantIssuesScreen() {
   const [viewMode, setViewMode] = useState<'list' | 'create'>(
     params.mode === 'create' ? 'create' : 'list'
   );
-  const [issues, setIssues] = useState<IssueItem[]>(INITIAL_ISSUES);
+  const issues = useIssuesStore((state) => state.issues);
+  const addIssue = useIssuesStore((state) => state.addIssue);
 
   // Automatically prepend any newly submitted issue from parameters
   useEffect(() => {
@@ -105,27 +86,21 @@ export function TenantIssuesScreen() {
         icon = 'bed-outline';
       }
 
-      setIssues((prev) => {
-        if (prev.some((item) => item.title === title && item.dateStr === 'Just now')) {
-          return prev;
-        }
-        return [
-          {
-            id: `issue-${Date.now()}`,
-            title,
-            room: 'Room 204',
-            status: 'In progress',
-            dateStr: 'Just now',
-            icon,
-            category,
-            description: params.newDesc,
-            hasPhoto: params.hasPhoto === 'true',
-          },
-          ...prev,
-        ];
-      });
+      if (!issues.some((item) => item.title === title && item.dateStr === 'Just now')) {
+        addIssue({
+          id: `issue-${Date.now()}`,
+          title,
+          room: 'Room 204',
+          status: 'In progress',
+          dateStr: 'Just now',
+          icon,
+          category,
+          description: params.newDesc,
+          hasPhoto: params.hasPhoto === 'true',
+        });
+      }
     }
-  }, [params.newTitle, params.newDesc, params.hasPhoto]);
+  }, [params.newTitle, params.newDesc, params.hasPhoto, issues, addIssue]);
 
   const handleBack = useCallback(() => {
     if (viewMode === 'create') {
@@ -175,22 +150,19 @@ export function TenantIssuesScreen() {
       icon = 'bed-outline';
     }
 
-    setIssues((prev) => [
-      {
-        id: `issue-${Date.now()}`,
-        title,
-        room: 'Room 204',
-        status: 'In progress',
-        dateStr: 'Just now',
-        icon,
-        category,
-        description: formData.description,
-        hasPhoto: formData.hasPhoto,
-      },
-      ...prev,
-    ]);
+    addIssue({
+      id: `issue-${Date.now()}`,
+      title,
+      room: 'Room 204',
+      status: 'In progress',
+      dateStr: 'Just now',
+      icon,
+      category,
+      description: formData.description,
+      hasPhoto: formData.hasPhoto,
+    });
     setViewMode('list');
-  }, []);
+  }, [addIssue]);
 
   // If viewMode is 'create', render form in-place inside tab screen to retain bottom navigation tab bar footer!
   if (viewMode === 'create') {
