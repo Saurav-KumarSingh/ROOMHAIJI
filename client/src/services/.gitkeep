@@ -1,0 +1,2 @@
+# API clients, local storage, analytics, auth token handlers.
+# e.g. api.ts (axios/fetch client), storage.ts (AsyncStorage wrapper), auth.ts

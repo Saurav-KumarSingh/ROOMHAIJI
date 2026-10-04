@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "title": "Sharma Building",
+    "address": "12, MG Road, Andheri West, Mumbai",
+    "iconBg": "#4F46E5",
+    "rooms": 12,
+    "occupied": 10,
+    "vacant": 2,
+    "expectedRent": "₹1.85L"
+  },
+  {
+    "id": "2",
+    "title": "Green Villa Flat",
+    "address": "B-204, Baner, Pune",
+    "iconBg": "#D97706",
+    "rooms": 1,
+    "occupied": 1,
+    "vacant": 0,
+    "expectedRent": "₹22K"
+  }
+]

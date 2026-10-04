@@ -1,0 +1,22 @@
+[
+  {
+    "id": "issue-1",
+    "title": "Fan not working",
+    "room": "Room 204",
+    "status": "In progress",
+    "dateStr": "In progress",
+    "icon": "construct-outline",
+    "category": "electrical",
+    "description": "Ceiling fan speed controller unresponsive and motor makes clicking sound."
+  },
+  {
+    "id": "issue-2",
+    "title": "Leaking tap",
+    "room": "Room 204",
+    "status": "Resolved",
+    "dateStr": "Resolved 2 Jul",
+    "icon": "checkmark",
+    "category": "plumbing",
+    "description": "Bathroom sink faucet was leaking water constantly."
+  }
+]
