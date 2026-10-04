@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  LANDLORD
+  TENANT
+}
+
+enum TenancyStatus {
+  ACTIVE
+  PAST
+}
+
+enum PaymentMethod {
+  UPI
+  CASH
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum IssueCategory {
+  ELECTRICAL
+  PLUMBING
+  CARPENTRY
+  OTHER
+}
+
+model User {
+  id             String     @id @default(uuid())
+  name           String
+  phone          String     @unique
+  email          String?    @unique
+  role           Role
+  upiId          String?
+  avatarColor    String?
+  
+  properties     Property[] @relation("LandlordProperties")
+  tenancies      Tenancy[]  @relation("TenantTenancies")
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Property {
+  id             String     @id @default(uuid())
+  landlordId     String
+  title          String
+  address        String
+  iconBg         String?
+  
+  landlord       User       @relation("LandlordProperties", fields: [landlordId], references: [id])
+  rooms          Room[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Room {
+  id             String     @id @default(uuid())
+  propertyId     String
+  roomNumber     String
+  expectedRent   Decimal
+  isOccupied     Boolean    @default(false)
+  
+  property       Property   @relation(fields: [propertyId], references: [id])
+  tenancies      Tenancy[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Tenancy {
+  id             String     @id @default(uuid())
+  tenantId       String
+  roomId         String
+  agreedRent     Decimal
+  startDate      DateTime
+  endDate        DateTime?
+  status         TenancyStatus @default(ACTIVE)
+  
+  tenant         User       @relation("TenantTenancies", fields: [tenantId], references: [id])
+  room           Room       @relation(fields: [roomId], references: [id])
+  transactions   Transaction[]
+  issues         Issue[]
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Transaction {
+  id             String     @id @default(uuid())
+  tenancyId      String
+  amount         Decimal
+  paymentMethod  PaymentMethod
+  status         TransactionStatus @default(PENDING)
+  forMonth       String
+  transactionDate DateTime
+  referenceId    String?
+  
+  tenancy        Tenancy    @relation(fields: [tenancyId], references: [id])
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Issue {
+  id             String     @id @default(uuid())
+  tenancyId      String
+  title          String
+  description    String
+  category       IssueCategory
+  status         IssueStatus @default(OPEN)
+  resolvedAt     DateTime?
+  
+  tenancy        Tenancy    @relation(fields: [tenancyId], references: [id])
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
