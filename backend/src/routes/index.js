@@ -10,11 +10,28 @@ const issueRoutes = require('./issueRoutes');
 const transactionController = require('../controllers/transactionController');
 const { authenticate } = require('../middlewares/authMiddleware');
 
+const prisma = require('../config/db');
+
 router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'RoomHaiji API is running smoothly',
     timestamp: new Date().toISOString()
+  });
+});
+
+router.get('/health/db', async (req, res) => {
+  const result = await prisma.checkDbConnection();
+  if (result.success) {
+    return res.status(200).json({
+      success: true,
+      message: 'Database connection is active and healthy'
+    });
+  }
+  return res.status(500).json({
+    success: false,
+    message: 'Database connection failed',
+    error: result.error
   });
 });
 
